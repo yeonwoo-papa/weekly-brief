@@ -1,0 +1,33 @@
+name: Weekly Macro Report (Gemini 4 Argon)
+
+on:
+  schedule:
+    # 매주 월요일 오전 08:00 KST (UTC 기준 일요일 23:00)
+    - cron: '0 23 * * 0'
+  workflow_dispatch: # 버튼 클릭으로 언제든 즉시 수동 테스트 실행 가능
+
+jobs:
+  build-and-send-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies & Chromium
+        run: |
+          pip install --upgrade -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Generate Weekly PDF Report & Send via Telegram
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TZ: 'Asia/Seoul'
+        run: |
+          python weekly_macro_report_argon.py

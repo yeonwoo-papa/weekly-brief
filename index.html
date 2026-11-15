@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>MacroBrief Pro — 스마트폰 최적화 주간 금융일정 & KOSPI·미국ETF 앱</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: #060a14;
+            color: #e2e8f0;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 9999px;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Smartphone Device Preview Frame (Default on Desktop/Canvas) */
+        body.phone-preview-mode {
+            background: radial-gradient(circle at 50% 15%, #1e293b 0%, #060a14 75%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 12px 8px 28px 8px;
+        }
+        body.phone-preview-mode #appDeviceShell {
+            width: 100%;
+            max-width: 412px; /* Galaxy S24 / S27 Ultra logical viewport width */
+            height: 840px;
+            max-height: calc(100vh - 68px);
+            background-color: #0b1120;
+            border: 10px solid #1e293b;
+            border-radius: 42px;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(148, 163, 184, 0.18);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        /* Wide Fullscreen Mode */
+        body.wide-preview-mode {
+            background-color: #0b1120;
+        }
+        body.wide-preview-mode #appDeviceShell {
+            width: 100%;
+            max-width: 1024px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #0b1120;
+            display: flex;
+            flex-direction: column;
+        }
+        body.phone-preview-mode #wideTopTabBar {
+            display: none !important;
+        }
+        body.wide-preview-mode #androidStatusBar,
+        body.wide-preview-mode #androidGesturePill {
+            display: none !important;
+        }
+
+        /* On actual mobile phones (<500px), fill screen naturally without outer bezel */
+        @media (max-width: 500px) {
+            body.phone-preview-mode {
+                padding: 0;
+                background: #0b1120;
+            }
+            body.phone-preview-mode #appDeviceShell {
+                max-width: 100%;
+                height: 100vh;
+                max-height: 100vh;
+                border: none;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            #previewSwitcherToolbar {
+                display: none !important;
+            }
+        }
+
+        @media print {
+            body, body.phone-preview-mode, body.wide-preview-mode {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 0 !important;
+                display: block !important;
+            }
+            #appDeviceShell {
+                max-width: 100% !important;
+                height: auto !important;
+                max-height: none !important;
+                border: none !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+            }
+            #appScrollViewport {
+                overflow: visible !important;
+                height: auto !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only-sheet {
+                display: block !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+            .print-card {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+            }
+            a {
+                color: #1d4ed8 !important;
+                text-decoration: underline !important;
+            }
+        }
+    </style>
+</head>
+<body class="phone-preview-mode">
+
+    <!-- Top Preview Mode Switcher (Visible in Canvas / PC so user can inspect smartphone screen) -->
+    <div id="previewSwitcherToolbar" class="w-full max-w-md mb-2.5 flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-full px-3 py-1.5 text-xs shadow-lg no-print">
+        <div class="flex items-center gap-1.5 text-slate-300 font-medium">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="lblViewportStatus">스마트폰 미리보기 (412px · 갤럭시 비율)</span>
+        </div>
+        <div class="flex items-center gap-1">
+            <button id="btnModePhone" class="px-2.5 py-1 rounded-full bg-blue-600 text-white font-semibold text-[11px] transition">
+                📱 스마트폰 뷰
+            </button>
+            <button id="btnModeWide" class="px-2.5 py-1 rounded-full text-slate-400 hover:text-white font-medium text-[11px] transition">
+                🖥️ 와이드 뷰
+            </button>
+        </div>
+    </div>
+
+    <!-- Smartphone Device Shell -->
+    <div id="appDeviceShell">
+
+        <!-- Simulated Android Status Bar & Punch-hole Camera -->
+        <div id="androidStatusBar" class="bg-slate-950 px-5 pt-2.5 pb-1.5 flex items-center justify-between text-[11px] font-semibold text-slate-300 select-none shrink-0 no-print">
+            <span id="lblStatusBarClock">08:00</span>
+            <div class="w-3 h-3 rounded-full bg-black border border-slate-800"></div>
+            <div class="flex items-center gap-1.5 text-[10px]">
+                <span>5G</span>
+                <span>100% 🔋</span>
+            </div>
+        </div>
+
+        <!-- Sticky Mobile App Header -->
+        <header class="bg-slate-900/95 backdrop-blur border-b border-slate-800/90 px-3.5 py-2.5 shrink-0 no-print">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow font-bold text-white text-xs shrink-0">
+                        MB
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5">
+                            <h1 class="text-sm font-bold text-white truncate">MacroBrief Pro</h1>
+                            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0">Argon 4.0</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 truncate">매주 월 08:00 · 국내주식 & 미국ETF</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button id="btnPrintPdfTop" class="px-2.5 py-1.5 rounded-lg bg-slate-800 active:bg-slate-700 text-slate-200 text-[11px] font-semibold border border-slate-700 transition">
+                        📄 PDF 저장/인쇄
+                    </button>
+                    <button id="btnInstallGuideTop" class="px-2.5 py-1.5 rounded-lg bg-blue-600 active:bg-blue-500 text-white text-[11px] font-semibold shadow-sm transition">
+                        📲 스토어/클라우드 배포
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Single-Row Horizontal Swipe Market Ticker Strip (Optimized for Mobile) -->
+        <section class="bg-slate-950 border-b border-slate-800/80 px-3 py-2 shrink-0 no-print">
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+                <a href="https://www.koreajoongangdaily.com/business/kospi-opens-higher-after-nvidia-leadership-change/12971349" target="_blank" rel="noopener noreferrer" class="snap-start shrink-0 w-36 bg-slate-900/90 active:bg-slate-800 border border-slate-800 rounded-xl p-2 transition block">
+                    <div class="text-[10px] text-slate-400 flex items-center justify-between">
+                        <span>KOSPI (11/13)</span>
+                        <span class="text-emerald-400 font-bold">+2.05%</span>
+                    </div>
+                    <div class="text-xs font-bold text-white mt-0.5">5,452.41</div>
+                    <div class="text-[10px] text-slate-500 truncate">전일 5,342.73</div>
+                </a>
+
+                <a href="https://english.mofe.go.kr/" target="_blank" rel="noopener noreferrer" class="snap-start shrink-0 w-36 bg-slate-900/90 active:bg-slate-800 border border-slate-800 rounded-xl p-2 transition block">
+                    <div class="text-[10px] text-slate-400 flex items-center justify-between">
+                        <span>USD/KRW</span>
+                        <span class="text-amber-300 font-semibold">11/13</span>
+                    </div>
+                    <div class="text-xs font-bold text-white mt-0.5">1,336.70원</div>
+                    <div class="text-[10px] text-slate-500 truncate">현물 1,335.29원</div>
+                </a>
+
+                <a href="https://tradingeconomics.com/united-states/currency" target="_blank" rel="noopener noreferrer" class="snap-start shrink-0 w-32 bg-slate-900/90 active:bg-slate-800 border border-slate-800 rounded-xl p-2 transition block">
+                    <div class="text-[10px] text-slate-400 flex items-center justify-between">
+                        <span>달러 DXY</span>
+                        <span class="text-slate-400">-0.01%</span>
+                    </div>
+                    <div class="text-xs font-bold text-white mt-0.5">103.17</div>
+                    <div class="text-[10px] text-slate-500 truncate">103선 강보합</div>
+                </a>
+
+                <a href="https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf" target="_blank" rel="noopener noreferrer" class="snap-start shrink-0 w-36 bg-slate-900/90 active:bg-slate-800 border border-slate-800 rounded-xl p-2 transition block">
+                    <div class="text-[10px] text-slate-400 flex items-center justify-between">
+                        <span>미 10년물 금리</span>
+                        <span class="text-blue-400 font-semibold">임계선</span>
+                    </div>
+                    <div class="text-xs font-bold text-white mt-0.5">4.7% ~ 4.8%</div>
+                    <div class="text-[10px] text-slate-500 truncate">채권 도피 둔화 구간</div>
+                </a>
+
+                <a href="https://www.koreatimes.co.kr/economy/20261029/feds-hawkish-hold-strengthens-case-for-boks-hike-in-november" target="_blank" rel="noopener noreferrer" class="snap-start shrink-0 w-36 bg-slate-900/90 active:bg-slate-800 border border-slate-800 rounded-xl p-2 transition block">
+                    <div class="text-[10px] text-slate-400 flex items-center justify-between">
+                        <span>미 연준 금리</span>
+                        <span class="text-rose-400 font-semibold">매파동결</span>
+                    </div>
+                    <div class="text-xs font-bold text-white mt-0.5">3.75~4.00%</div>
+                    <div class="text-[10px] text-slate-500 truncate">11/19 의사록 공개</div>
+                </a>
+
+                <a href="https://tradingeconomics.com/south-korea/interest-rate" target="_blank" rel="noopener noreferrer" class="snap-start shrink-0 w-36 bg-slate-900/90 active:bg-slate-800 border border-slate-800 rounded-xl p-2 transition block">
+                    <div class="text-[10px] text-slate-400 flex items-center justify-between">
+                        <span>한은 기준금리</span>
+                        <span class="text-amber-400 font-semibold">11/25 금통위</span>
+                    </div>
+                    <div class="text-xs font-bold text-white mt-0.5">3.00%</div>
+                    <div class="text-[10px] text-slate-500 truncate">7·8월 인상 후 동결</div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Wide-Mode Top Navigation Bar (Hidden in Phone Preview Mode) -->
+        <div id="wideTopTabBar" class="px-3.5 pt-2.5 shrink-0 no-print">
+            <div class="grid grid-cols-4 gap-1.5 bg-slate-900 p-1.5 rounded-xl border border-slate-800">
+                <button data-tab="tab-schedule" class="nav-tab-btn py-2 px-3 rounded-lg text-xs font-semibold transition bg-blue-600 text-white">📅 주간 일정표</button>
+                <button data-tab="tab-scenario" class="nav-tab-btn py-2 px-3 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">📊 IB 예측·시나리오</button>
+                <button data-tab="tab-ai-pdf" class="nav-tab-btn py-2 px-3 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">🤖 Argon 리포트·PDF</button>
+                <button data-tab="tab-playstore" class="nav-tab-btn py-2 px-3 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">🚀 스토어·서버리스</button>
+            </div>
+        </div>
+
+        <!-- Scrollable App Viewport -->
+        <main id="appScrollViewport" class="flex-1 overflow-y-auto px-3.5 py-3.5 space-y-4">
+
+            <!-- ========================================== -->
+            <!-- TAB 1: 주간 일정표 & 모바일 브리핑 카드 -->
+            <!-- ========================================== -->
+            <section id="tab-schedule" class="tab-panel space-y-3.5">
+                <!-- Mobile Hero Summary Card -->
+                <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/75 border border-slate-800 rounded-2xl p-3.5 shadow-md space-y-2.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                            11월 3주차 (11/16 월 ~ 11/20 금)
+                        </span>
+                        <span class="text-[11px] text-emerald-400 font-semibold">KOSPI · 미국ETF 집중</span>
+                    </div>
+
+                    <h2 class="text-sm font-bold text-white leading-snug">
+                        미 소매판매(11/17)·엔비디아 실적·FOMC 의사록(11/19) 집중 주간
+                    </h2>
+
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        미 10년물 국채금리 <strong class="text-white">4.7%~4.8%</strong> 구간에서 채권 도피성 머니무브가 둔화되고 있으며(<a href="https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">삼성증권 주간 전략</a>), 콜레트 크레스 임시 CEO 체제로 전환한 엔비디아 실적 발표(<a href="https://www.koreajoongangdaily.com/business/kospi-opens-higher-after-nvidia-leadership-change/12971349" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">Korea JoongAng Daily</a>)와 10월 FOMC 의사록(<a href="https://fedratecalc.com/fomc-minutes-release-schedule/" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">FedRateCalc</a>)이 주간 승부처입니다.
+                    </p>
+
+                    <!-- Collapsible Quick Strategy Pills -->
+                    <div class="grid grid-cols-1 gap-2 pt-1 text-xs">
+                        <div class="bg-slate-950/80 border border-slate-800/90 rounded-xl p-2.5 flex items-start gap-2">
+                            <span class="text-emerald-400 font-bold shrink-0">🇰🇷 KOSPI</span>
+                            <span class="text-slate-300">신용잔고 7월 저점 하회로 매물 소화 완료(<a href="https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">삼성증권</a>). 반도체 가이던스 확인 전까지 로봇·바이오 순환매 대응.</span>
+                        </div>
+                        <div class="bg-slate-950/80 border border-slate-800/90 rounded-xl p-2.5 flex items-start gap-2">
+                            <span class="text-blue-400 font-bold shrink-0">🇺🇸 미ETF</span>
+                            <span class="text-slate-300">환율 1,336.7원(<a href="https://english.mofe.go.kr/" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">기재부</a>) 및 한은 11/25 인상 가능성(<a href="https://www.koreatimes.co.kr/economy/20261029/feds-hawkish-hold-strengthens-case-for-boks-hike-in-november" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">Korea Times</a>) 감안, 나스닥100·S&P500 분할 접근.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sticky Filter Pill Bar -->
+                <div class="flex items-center justify-between gap-2 bg-slate-900 border border-slate-800 rounded-xl p-2.5">
+                    <div class="flex items-center gap-1 overflow-x-auto no-scrollbar">
+                        <button data-country="ALL" class="country-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-600 text-white shrink-0">전체 (7)</button>
+                        <button data-country="US" class="country-filter-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 shrink-0">🇺🇸 미국</button>
+                        <button data-country="KR" class="country-filter-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 shrink-0">🇰🇷 한국/글로벌</button>
+                    </div>
+                    <label class="flex items-center gap-1.5 text-xs text-amber-300 font-semibold cursor-pointer select-none shrink-0">
+                        <input type="checkbox" id="chkHighImportanceOnly" class="rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-0">
+                        <span>★★★ 핵심 빅 이벤트만 보기</span>
+                    </label>
+                </div>
+
+                <!-- Schedule Cards -->
+                <div id="scheduleListContainer" class="space-y-2.5"></div>
+            </section>
+
+            <!-- ========================================== -->
+            <!-- TAB 2: IB 예측·시나리오 (모바일 한 손 조작 최적화) -->
+            <!-- ========================================== -->
+            <section id="tab-scenario" class="tab-panel hidden space-y-3.5">
+                <!-- Portfolio Weight & FX Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <h2 class="text-xs font-bold text-white">내 자산 비중 & 환노출 설정</h2>
+                        <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-[11px]">
+                            <button id="btnFxUnhedged" class="px-2 py-1 rounded bg-blue-600 text-white font-semibold">환노출형 (기본)</button>
+                            <button id="btnFxHedged" class="px-2 py-1 rounded text-slate-400 font-medium">환헤지형 (H)</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-xs font-bold">
+                            <span class="text-emerald-400">🇰🇷 국내주식: <span id="lblKrWeight">55</span>%</span>
+                            <span class="text-blue-400">🇺🇸 미국 ETF: <span id="lblUsWeight">45</span>%</span>
+                        </div>
+                        <input type="range" id="sliderKrWeight" min="10" max="90" step="5" value="55" class="w-full accent-blue-500 cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Horizontal Swipe Event Selector Pills (Mobile friendly) -->
+                <div class="space-y-1.5">
+                    <div class="text-xs font-semibold text-slate-400 px-0.5">분석할 이벤트 선택 (좌우 스와이프)</div>
+                    <div id="scenarioEventSelector" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x"></div>
+                </div>
+
+                <!-- Scenario A vs B Toggle & Impact Output -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-3.5">
+                    <div class="space-y-2 border-b border-slate-800 pb-3">
+                        <span id="scenEventTimeBadge" class="text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300"></span>
+                        <h3 id="scenEventTitle" class="text-sm font-bold text-white leading-snug"></h3>
+
+                        <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+                            <button id="btnScenarioBeat" class="py-2 px-2 rounded-lg bg-rose-600 text-white font-bold transition text-center">
+                                시나리오 A: 예상 상회/매파
+                            </button>
+                            <button id="btnScenarioMiss" class="py-2 px-2 rounded-lg text-slate-400 font-medium transition text-center">
+                                시나리오 B: 예상 하회/비둘기
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Scenario Content -->
+                    <div id="scenarioDetailBody" class="space-y-2.5 text-xs"></div>
+
+                    <!-- Sensitivity Bar Chart -->
+                    <div class="pt-2 border-t border-slate-800">
+                        <h4 class="text-[11px] font-semibold text-slate-400 mb-1.5">자산군별 예상 민감도 (-3 ~ +3)</h4>
+                        <div class="relative h-48">
+                            <canvas id="scenarioImpactChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================== -->
+            <!-- TAB 3: Gemini 4 Argon 리포트 & PDF 저장 -->
+            <!-- ========================================== -->
+            <section id="tab-ai-pdf" class="tab-panel hidden space-y-3.5">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 no-print space-y-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <div>
+                            <h2 class="text-sm font-bold text-white">Argon 4.0 리포트 & PDF 출력</h2>
+                            <p class="text-[11px] text-slate-400">내장 검증 리포트를 PDF로 저장하거나 실시간 갱신합니다.</p>
+                        </div>
+                        <button id="btnPrintPdfReportTab" class="px-3 py-2 rounded-xl bg-emerald-600 active:bg-emerald-500 text-white text-xs font-bold shadow shrink-0">
+                            🖨️ 현재 보고서 PDF 저장 / 인쇄
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">모델 선택</label>
+                            <select id="selGeminiModel" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white text-xs">
+                                <option value="gemini-4-argon" selected>gemini-4-argon</option>
+                                <option value="gemini-4-carbon">gemini-4-carbon</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">Thinking Level</label>
+                            <select id="selThinkingLevel" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white text-xs">
+                                <option value="HIGH" selected>HIGH (교차검증)</option>
+                                <option value="MEDIUM">MEDIUM</option>
+                                <option value="LOW">LOW</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="text-xs">
+                        <label class="block text-[11px] text-slate-400 mb-1">Google AI Studio API Key (선택 입력)</label>
+                        <input type="password" id="inpGeminiApiKey" placeholder="AIzaSy... (미입력 시 검증된 기본 리포트 사용)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white text-xs">
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-1">
+                        <button id="btnResetDefaultReport" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs font-medium border border-slate-700">
+                            기본 리포트 복원
+                        </button>
+                        <button id="btnRunArgonLive" class="flex-1 py-1.5 px-3 rounded-lg bg-blue-600 active:bg-blue-500 text-white text-xs font-bold shadow text-center">
+                            ⚡ Argon 실시간 리포트 새로 생성
+                        </button>
+                    </div>
+                    <div id="lblApiStatus" class="text-[11px] text-slate-400">상태: 2026년 11월 3주차 검증 리포트 로드됨</div>
+                </div>
+
+                <!-- Printable Report Document -->
+                <article id="printableReportContainer" class="print-only-sheet bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-5">
+                    <div class="border-b border-slate-700 pb-3 space-y-1">
+                        <div class="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Weekly Macro & Portfolio Strategy Report</div>
+                        <h1 class="text-base font-bold text-white">주간 주요국 금융일정 및 KOSPI·미국ETF 영향 보고서</h1>
+                        <div class="flex flex-wrap items-center justify-between text-[11px] text-slate-400 pt-1">
+                            <span>대상: 2026.11.16(월) ~ 11.20(금)</span>
+                            <span>엔진: <strong id="lblReportModelBadge" class="text-slate-200">gemini-4-argon (HIGH)</strong></span>
+                        </div>
+                    </div>
+
+                    <div id="reportRenderedContent" class="space-y-4 text-xs leading-relaxed"></div>
+                </article>
+            </section>
+
+            <!-- ========================================== -->
+            <!-- TAB 4: 구글 스토어 출시 & 서버리스 자동화 -->
+            <!-- ========================================== -->
+            <section id="tab-playstore" class="tab-panel hidden space-y-3.5 no-print">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+                    <h2 class="text-sm font-bold text-white">구글 플레이스토어 출시 & PC 꺼짐 자동화</h2>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        현재 모바일 앱 화면 그대로 **Google Play 스토어(`.aab`)**에 올릴 수 있는 패키징 설정과, PC를 켜두지 않아도 매주 월요일 08:00에 실행되는 **GitHub Actions 무서버 워크플로**입니다.
+                    </p>
+
+                    <div class="grid grid-cols-1 gap-2 text-xs pt-1">
+                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5">
+                            <span class="font-bold text-blue-400">1단계 (무료 호스팅):</span> GitHub Pages 등에 이 앱 HTML과 `manifest.json` 업로드
+                        </div>
+                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5">
+                            <span class="font-bold text-emerald-400">2단계 (.aab 빌드):</span> Bubblewrap CLI 또는 Capacitor로 스토어 등록용 `.aab` 생성
+                        </div>
+                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5">
+                            <span class="font-bold text-amber-400">3단계 (월요일 8시 자동실행):</span> GitHub Actions `.yml` 등록으로 PC 없이 매주 텔레그램 PDF 수신
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Config Viewer -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <button data-cfg="workflow" class="cfg-tab-btn py-1.5 px-2 rounded-lg text-xs font-semibold bg-blue-600 text-white text-center">
+                            1. GitHub Actions 자동실행 (.yml)
+                        </button>
+                        <button data-cfg="manifest" class="cfg-tab-btn py-1.5 px-2 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 text-center">
+                            2. PWA manifest.json
+                        </button>
+                        <button data-cfg="bubblewrap" class="cfg-tab-btn py-1.5 px-2 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 text-center">
+                            3. Play 스토어 .aab 빌드 명령어
+                        </button>
+                        <button data-cfg="capacitor" class="cfg-tab-btn py-1.5 px-2 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 text-center">
+                            4. Capacitor Android 설정
+                        </button>
+                    </div>
+
+                    <div id="cfgDescriptionText" class="text-xs text-slate-300 bg-slate-950/70 border border-slate-800 rounded-xl p-2.5 leading-relaxed"></div>
+
+                    <div class="flex justify-end">
+                        <button id="btnCopyConfigCode" class="w-full py-2 rounded-xl bg-emerald-600 active:bg-emerald-500 text-white text-xs font-bold transition">
+                            📋 코드 복사하기
+                        </button>
+                    </div>
+
+                    <pre class="bg-slate-950 border border-slate-800 rounded-xl p-3 overflow-x-auto text-[11px] text-slate-200 font-mono leading-relaxed"><code id="cfgCodeDisplay"></code></pre>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Bottom Navigation Bar (Always visible inside phone frame, thumb-zone optimized) -->
+        <nav class="bg-slate-900/95 backdrop-blur border-t border-slate-800 px-2 pt-1.5 pb-2 shrink-0 no-print">
+            <div class="grid grid-cols-4 gap-1">
+                <button data-tab="tab-schedule" class="nav-tab-btn flex flex-col items-center py-1 rounded-xl text-[11px] font-bold text-blue-400 bg-blue-500/10">
+                    <span class="text-base leading-none mb-0.5">📅</span>
+                    <span>일정표</span>
+                </button>
+                <button data-tab="tab-scenario" class="nav-tab-btn flex flex-col items-center py-1 rounded-xl text-[11px] font-medium text-slate-400">
+                    <span class="text-base leading-none mb-0.5">📊</span>
+                    <span>시나리오</span>
+                </button>
+                <button data-tab="tab-ai-pdf" class="nav-tab-btn flex flex-col items-center py-1 rounded-xl text-[11px] font-medium text-slate-400">
+                    <span class="text-base leading-none mb-0.5">🤖</span>
+                    <span>PDF리포트</span>
+                </button>
+                <button data-tab="tab-playstore" class="nav-tab-btn flex flex-col items-center py-1 rounded-xl text-[11px] font-medium text-slate-400">
+                    <span class="text-base leading-none mb-0.5">🚀</span>
+                    <span>스토어출시</span>
+                </button>
+            </div>
+            <!-- Simulated Android Home Gesture Indicator -->
+            <div id="androidGesturePill" class="w-28 h-1 bg-slate-700 rounded-full mx-auto mt-2"></div>
+        </nav>
+
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toastBox" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 hidden bg-emerald-600 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-xl"></div>
+
+    <script>
+        // =====================================================================
+        // 1. 검증된 2026년 11월 3주차(11/16~11/20) 글로벌 매크로 데이터셋
+        // =====================================================================
+        const WEEKLY_EVENTS = [
+            {
+                id: 'us-retail-sales',
+                dayLabel: '11/17 (화) 22:30 KST',
+                shortName: '11/17 미 소매판매',
+                country: 'US',
+                countryBadge: '🇺🇸 미국',
+                title: '미국 10월 소매판매 (Retail Sales & Control Group)',
+                importance: 3,
+                previous: '전체 MoM +0.8% ($745.0B) / Control Group +0.1%',
+                consensus: 'Control Group MoM +0.1% (보합권 둔화 예상)',
+                ibForecast: '미 인구조사국(Census Bureau) 발표. 9월 YoY +6.3% 호조 이후 연말 소비 탄력 유지 여부가 핵심이며, 애틀랜타 연은 GDPNow 4분기 성장률 추정치에 즉시 반영됨.',
+                sourceTitle: 'FedRateCalc',
+                sourceUrl: 'https://fedratecalc.com/retail-sales-release-date/',
+                secondSourceTitle: 'Trading Economics',
+                secondSourceUrl: 'https://tradingeconomics.com/united-states/calendar',
+                watchPoint: '자동차·휘발유 제외 근원 소매판매(Control Group)가 +0.1%를 상회할 경우 미 10년물 국채금리 4.8% 재돌파 압력으로 작용.',
+                scenarios: {
+                    beat: {
+                        headline: '소매판매 예상 상회 (소비 과열 · 국채금리 상승 압력)',
+                        ratesFx: '미 10년물 금리 4.8% 상단 테스트 및 달러 인덱스(103.17) 강세, 원/달러 환율 1,340원대 재진입 압력',
+                        kospiImpact: '고금리 장기화 우려로 외국인 현·선물 순매도 자극 가능성. 단, 미국 소비 호조 수혜가 기대되는 자동차·화장품·음식료 수출주는 상대적 방어력 확보.',
+                        usEtfImpact: '금리 민감도가 높은 나스닥100·장기채 ETF 단기 눌림목, 반면 미국 소비재·금융·S&P500 가치주 ETF 우위. 환율 상승으로 환노출형 ETF가 환헤지형(H) 대비 수익률 방어에 유리.',
+                        scores: [-1.2, -1.8, 1.5, -0.5, -1.4]
+                    },
+                    miss: {
+                        headline: '소매판매 예상 하회 (완만한 소비 둔화 · 금리 안정)',
+                        ratesFx: '미 10년물 금리 4.7% 하단 안착 시도 및 원/달러 환율 1,330원 초중반 하향 안정',
+                        kospiImpact: '시장금리 진정에 힘입어 외국인 수급 개선 및 CES 모멘텀이 유입되는 로봇·바이오·성장주 순환매 탄력 강화.',
+                        usEtfImpact: '국채금리 하락에 따라 나스닥100·빅테크·배당성장 ETF 동반 반등. 원화 강세 전환 시 환헤지형(H) ETF의 상대 매력도 상승.',
+                        scores: [1.4, 1.8, 0.8, 1.5, 2.1]
+                    }
+                }
+            },
+            {
+                id: 'us-ind-prod',
+                dayLabel: '11/18 (수) 00:15 KST',
+                shortName: '11/18 미 산업생산',
+                country: 'US',
+                countryBadge: '🇺🇸 미국',
+                title: '미국 10월 산업생산 및 설비가동률 (G.17 Industrial Production)',
+                importance: 2,
+                previous: '미 연준(FRB) 월간 집계 및 GDPNow 연동',
+                consensus: '제조업 및 AI 데이터센터 전력·설비 가동 추이 점검',
+                ibForecast: '미 연준(FRB)이 화요일 오전 10:15(ET) 발표하며, 애틀랜타 연은 GDPNow(11/17 업데이트)의 4분기 실물 투자 추정치에 직접 반영됨.',
+                sourceTitle: 'FRED Calendar',
+                sourceUrl: 'https://fred.stlouisfed.org/releases/calendar?rid=13&ve=2018-12-31&view=year&vs=2018-01-01',
+                secondSourceTitle: 'Atlanta Fed GDPNow',
+                secondSourceUrl: 'https://www.atlantafed.org/research-and-data/data/gdpnow',
+                watchPoint: '유틸리티(전력) 및 하이테크 설비 생산 항목의 확장세 유지 여부.',
+                scenarios: {
+                    beat: {
+                        headline: '산업생산·설비가동률 호조 (미국 제조업·전력 수요 견조)',
+                        ratesFx: '미국 실물경기 연착륙 신뢰 강화, 달러 인덱스 완만한 강보합',
+                        kospiImpact: '북미 인프라 투자 수혜가 직결되는 국내 전력기기(변압기·전선)·기계 업종에 긍정적 모멘텀 작용.',
+                        usEtfImpact: '미국 산업재(XLI) 및 AI 전력 인프라 관련 ETF 강세 지지.',
+                        scores: [1.1, 0.9, 1.8, 1.3, 1.0]
+                    },
+                    miss: {
+                        headline: '산업생산 부진 (제조업 체감경기 둔화 우려)',
+                        ratesFx: '미 국채금리 하락 재료로 작용하며 안전자산 선호 일부 유입',
+                        kospiImpact: '경기민감 시클리컬(철강·화학) 업종 단기 약세, 바이오·방어주 중심 수급 이동.',
+                        usEtfImpact: '산업재 ETF 약세, 헬스케어·필수소비재 및 나스닥 대형 기술주 상대 우위.',
+                        scores: [-0.6, 0.4, -1.3, -0.3, 0.5]
+                    }
+                }
+            },
+            {
+                id: 'nvda-earnings',
+                dayLabel: '11/18 (수) 미 장마감 후',
+                shortName: '11/18 엔비디아 실적',
+                country: 'US',
+                countryBadge: '🇺🇸 미국',
+                title: '엔비디아(Nvidia) 실적 발표 및 전사 타운홀 미팅',
+                importance: 3,
+                previous: '젠슨 황 사임 후 콜레트 크레스 임시 CEO 체제 전환',
+                consensus: '차세대 AI 가속기 공급 일정 및 리더십 전환기 가이던스 확인',
+                ibForecast: '삼성증권 주간 투자 전략에 따르면 훼손된 AI 밸류체인 신뢰가 복원되는 핵심 분수령. 11/13 코스피는 리더십 교체 충격에도 +2.05%(5,452.41) 상승 출발하며 선반영 소화 시도.',
+                sourceTitle: '삼성증권 주간전략',
+                sourceUrl: 'https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf',
+                secondSourceTitle: 'Korea JoongAng Daily',
+                secondSourceUrl: 'https://www.koreajoongangdaily.com/business/kospi-opens-higher-after-nvidia-leadership-change/12971349',
+                watchPoint: '콜레트 크레스 임시 CEO의 데이터센터 매출 가이던스 유지 여부 및 Non-엔비디아(ASIC·자체칩) 진영으로의 수혜 확산 여부.',
+                scenarios: {
+                    beat: {
+                        headline: '실적·가이던스 서프라이즈 및 경영진 불확실성 해소',
+                        ratesFx: '위험자산 선호(Risk-On) 복원으로 채권 대기 자금의 증시 재유입 및 원화 강세(환율 하락)',
+                        kospiImpact: 'SK하이닉스·삼성전자 등 HBM·반도체 밸류체인 외국인 대규모 순매수 유입 및 코스피 5,500선 회복 시도.',
+                        usEtfImpact: '미국 반도체 ETF(SOXX/SMH) 및 나스닥100(QQQ) 강한 반등. 원/달러 하락 동반 시 환헤지형(H) 기술주 ETF 단기 탄력 극대화.',
+                        scores: [2.7, 3.0, 1.4, 2.3, 2.9]
+                    },
+                    miss: {
+                        headline: '가이던스 보수적 제시 또는 리더십 공백 우려 지속',
+                        ratesFx: '안전 선호 재발로 미 10년물 금리 하락 및 원/달러 환율 상승(약세)',
+                        kospiImpact: 'AI 하드웨어 차익실현 매물 출회. 다만 삼성증권 전략처럼 Non-엔비디아 ASIC 수혜주나 내년 초 CES 모멘텀이 있는 로봇·바이오 섹터로 빠른 순환매 예상.',
+                        usEtfImpact: '나스닥100·반도체 ETF 조정 불가피, S&P500 동일가중·배당·헬스케어 ETF로 방어 및 환노출형 ETF를 통한 환차익 방어 유효.',
+                        scores: [-2.2, -2.8, -0.4, -1.5, -2.6]
+                    }
+                }
+            },
+            {
+                id: 'apec-summit',
+                dayLabel: '11/18 (수) 주중',
+                shortName: '11/18 APEC 정상회의',
+                country: 'KR',
+                countryBadge: '🇰🇷 한국/글로벌',
+                title: 'APEC 정상회의 개막 및 한·미 통상 현안 점검',
+                importance: 2,
+                previous: '미 의회 통상 압박 및 한국 대미 투자 속도 조절 논의',
+                consensus: '아태지역 공급망 협력 및 통상 불확실성 완화 여부 주목',
+                ibForecast: '삼성증권 주간 전략에서 지목한 11월 3주차 주요 정치·외교 일정으로, 미 의회발 통상 압박 속에서 한국 기업들의 대미 투자 및 수출 여건을 점검하는 이벤트.',
+                sourceTitle: '삼성증권 주간전략',
+                sourceUrl: 'https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf',
+                secondSourceTitle: 'Investing.com 뉴스',
+                secondSourceUrl: 'https://kr.investing.com/news/stock-market-news/article-2169999',
+                watchPoint: '반도체·배터리·전력망 등 전략 산업의 공급망 협정 및 관세·보조금 관련 정상 간 메시지.',
+                scenarios: {
+                    beat: {
+                        headline: '공급망 협력 강화 및 통상 불확실성 완화 메시지 도출',
+                        ratesFx: '원/달러 환율 하향 안정(1,330원 이하 시도) 및 신흥국 통화 강세',
+                        kospiImpact: '대미 투자 불확실성으로 눌려 있던 2차전지·자동차·조선·방산 등 한국 주력 수출 대형주 밸류에이션 리레이팅.',
+                        usEtfImpact: '글로벌 교역 둔화 우려 완화로 S&P500 및 글로벌 산업재·클린에너지 ETF 투자심리 개선.',
+                        scores: [1.8, 1.5, 2.3, 1.1, 1.2]
+                    },
+                    miss: {
+                        headline: '보호무역주의 및 통상 마찰 우려 재부각',
+                        ratesFx: '원/달러 환율 상방 압력 확대',
+                        kospiImpact: '관세·보조금 민감 수출주 단기 관망세, 내수·통신·금융 및 소프트웨어/바이오 업종 상대 강세.',
+                        usEtfImpact: '미국 내수 중심 중형주·유틸리티 ETF 선호 강화 및 환노출형 비중 유지 유리.',
+                        scores: [-1.1, -0.8, -1.7, -0.4, -0.5]
+                    }
+                }
+            },
+            {
+                id: 'fomc-minutes',
+                dayLabel: '11/19 (목) 04:00 KST',
+                shortName: '11/19 FOMC 의사록',
+                country: 'US',
+                countryBadge: '🇺🇸 미국',
+                title: '미국 10월 FOMC 의사록 공개 (FOMC Minutes)',
+                importance: 3,
+                previous: '기준금리 3.75% ~ 4.00% 동결 (10월 회의)',
+                consensus: '10월 매파적 동결 배경 및 12월 FOMC 금리 결정 힌트 확인',
+                ibForecast: '미 동부시간 11/18 오후 2시(한국 11/19 새벽 4시) 공개. 연준의 10월 매파적 동결 스탠스가 한국은행의 11월 금통위(11/25) 추가 금리 인상(현재 3.00%) 명분을 강화하고 있어 한·미 금리차 관점에서 핵심 이벤트.',
+                sourceTitle: 'FedRateCalc',
+                sourceUrl: 'https://fedratecalc.com/fomc-minutes-release-schedule/',
+                secondSourceTitle: 'The Korea Times',
+                secondSourceUrl: 'https://www.koreatimes.co.kr/economy/20261029/feds-hawkish-hold-strengthens-case-for-boks-hike-in-november',
+                watchPoint: '위원들 간 인플레이션 재반등 우려 수위 및 12월 회의 동결/조정 조건에 대한 구체적 문구.',
+                scenarios: {
+                    beat: {
+                        headline: '의사록 매파적 해석 우세 (고금리 장기화 및 한은 11월 인상 확률 상승)',
+                        ratesFx: '미 국채 2년·10년물 금리 상승, 달러 강세 및 한국 국고채 금리 동반 상승 압력',
+                        kospiImpact: '차주(11/25) 한국은행 금통위의 추가 인상(3.00% → 3.25%) 경계감이 높아지며 성장주·고부채 기업 부담, 은행·보험 등 금융주 수혜.',
+                        usEtfImpact: '성장주·리츠 ETF 조정 압력, 미국 단기채(SGOV/BIL) 및 금융주 ETF 선호. 환노출형 ETF로 달러 강세 헤지.',
+                        scores: [-1.5, -1.7, 0.6, -1.2, -1.8]
+                    },
+                    miss: {
+                        headline: '의사록 비둘기파적 해석 (긴축 피로감 언급 및 금리 안정 시사)',
+                        ratesFx: '미 10년물 금리 4.7% 하회 시도 및 원/달러 환율 하락 안정',
+                        kospiImpact: '한은의 11월 금통위 동결(3.00% 유지) 기대감 확산과 함께 외국인 선물 매수 유입, 코스피 전반 안도 랠리.',
+                        usEtfImpact: '나스닥100·S&P500 및 미국 장기국채(TLT) ETF 동반 강세.',
+                        scores: [2.0, 2.2, 1.5, 1.9, 2.4]
+                    }
+                }
+            },
+            {
+                id: 'us-jobless-anthropic',
+                dayLabel: '11/19 (목) 22:30 KST',
+                shortName: '11/19 실업수당·앤스로픽',
+                country: 'US',
+                countryBadge: '🇺🇸 미국',
+                title: '미 주간 신규 실업수당 청구건수 & 앤스로픽(Anthropic) 나스닥 상장 예정',
+                importance: 2,
+                previous: '신규 실업수당 청구 200,000건 (직전 주)',
+                consensus: '20만 건 안팎 견조한 고용 유지 여부 & 대형 AI IPO 흥행 점검',
+                ibForecast: '11월 14일 주간 기준 실업수당 청구건수가 발표되며, 같은 날 AI 대표 기업 앤스로픽의 나스닥 상장(11/19 예정)이 맞물려 글로벌 AI 소프트웨어 밸류에이션의 바로미터로 작용.',
+                sourceTitle: 'Finance Calendar',
+                sourceUrl: 'https://www.financecalendar.com/event/us-initial-jobless-claims-november-12-2026/',
+                secondSourceTitle: '삼성증권 주간전략',
+                secondSourceUrl: 'https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf',
+                watchPoint: '실업수당 청구건수의 급증 여부 및 앤스로픽 상장 후 시가총액 안착을 통한 AI 소프트웨어 투자심리 회복.',
+                scenarios: {
+                    beat: {
+                        headline: '고용 지표 골디락스 유지 + 앤스로픽 나스닥 상장 흥행 성공',
+                        ratesFx: '미 증시 기술주 자금 유입으로 위험선호 회복 및 금리 안정',
+                        kospiImpact: '국내 AI 소프트웨어·플랫폼·클라우드 및 전력설비 테마 동반 강세.',
+                        usEtfImpact: '미국 AI·소프트웨어·나스닥100 ETF에 강력한 신규 모멘텀 부여.',
+                        scores: [1.9, 2.3, 1.0, 1.8, 2.5]
+                    },
+                    miss: {
+                        headline: '고용 급랭 신호 또는 IPO 이후 AI 밸류에이션 차익실현 출회',
+                        ratesFx: '변동성 지수(VIX) 상승 및 안전자산 선호',
+                        kospiImpact: '고밸류 성장주 단기 숨고르기, 배당·가치주 중심 방어.',
+                        usEtfImpact: '나스닥 고성장 테마 ETF 단기 변동성 확대, S&P500 저변동성·배당 ETF 우위.',
+                        scores: [-1.3, -1.6, -0.5, -1.0, -1.7]
+                    }
+                }
+            },
+            {
+                id: 'us-opex',
+                dayLabel: '11/20 (금) 장중·마감',
+                shortName: '11/20 미 옵션만기일',
+                country: 'US',
+                countryBadge: '🇺🇸 미국',
+                title: '미국 11월 월간 옵션만기일 (Monthly Options Expiration)',
+                importance: 2,
+                previous: '빅테크 이벤트 소화 후 월간 파생 만기 도래',
+                consensus: '엔비디아·FOMC 의사록 이후 감마(Gamma) 포지션 청산 변동성 주의',
+                ibForecast: '주중 대형 이벤트(소매판매, 엔비디아 실적, FOMC 의사록, 앤스로픽 상장)가 집중된 직후 금요일 월간 옵션만기일이 도래하여 장 막판 수급 쏠림 가능성 상존.',
+                sourceTitle: '삼성증권 주간전략',
+                sourceUrl: 'https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf',
+                secondSourceTitle: 'SimianX AI 캘린더',
+                secondSourceUrl: 'https://www.simianx.ai/ko/stories/us-economic-calendar-this-month-in-your-time-zone',
+                watchPoint: '미국 빅테크 콜/풋옵션 미결제약정 집중 행사가 구간에서의 장 후반 변동성.',
+                scenarios: {
+                    beat: {
+                        headline: '숏커버링 및 콜옵션 감마 스퀴즈 유입 시 주간 고점 마감',
+                        ratesFx: '위험선호 심화 및 달러 약보합 마감',
+                        kospiImpact: '차주 월요일(11/23) 코스피 외국인 선물 매수 전환 기대감 형성.',
+                        usEtfImpact: '나스닥100 및 S&P500 ETF 주간 양봉 마감 견인.',
+                        scores: [1.5, 1.7, 1.1, 1.6, 1.9]
+                    },
+                    miss: {
+                        headline: '만기 물량 출회 및 위클리 차익실현 매물 집중',
+                        ratesFx: '주말 앞두고 현금 확보 및 달러 소폭 강세',
+                        kospiImpact: '금요일 국내장 외국인 현·선물 관망세 및 차주 한은 금통위 대기 모드 진입.',
+                        usEtfImpact: '미국 지수 ETF 단기 눌림목 활용 분할 매수 기회.',
+                        scores: [-0.9, -1.1, -0.6, -0.9, -1.2]
+                    }
+                }
+            }
+        ];
+
+        // =====================================================================
+        // 2. 플레이스토어 & GitHub Actions 설정 파일 템플릿
+        // =====================================================================
+        const CONFIG_TEMPLATES = {
+            workflow: {
+                desc: 'PC를 켜두지 않아도 매주 월요일 오전 8시(KST)에 GitHub 무료 서버가 켜져서 Gemini 4 Argon으로 리포트와 PDF를 생성하고 텔레그램으로 전송합니다.',
+                code: `name: Weekly Macro Report (Gemini 4 Argon)
+
+on:
+  schedule:
+    # 매주 월요일 오전 08:00 KST (UTC 기준 일요일 23:00)
+    - cron: '0 23 * * 0'
+  workflow_dispatch:
+
+jobs:
+  build-and-send-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies & Chromium
+        run: |
+          pip install --upgrade "google-genai>=2.34.0" markdown playwright requests python-dotenv schedule
+          playwright install --with-deps chromium
+
+      - name: Generate Weekly PDF Report & Send via Telegram
+        env:
+          GEMINI_API_KEY: \${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: \${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: \${{ secrets.TELEGRAM_CHAT_ID }}
+          TZ: 'Asia/Seoul'
+        run: |
+          python weekly_macro_report_argon.py`
+            },
+            manifest: {
+                desc: '스마트폰 홈 화면 설치 및 구글 플레이스토어(TWA) 패키징을 위한 manifest.json 설정입니다.',
+                code: `{
+  "name": "MacroBrief Pro - 주간 금융일정 & 포트폴리오 리포트",
+  "short_name": "MacroBrief",
+  "description": "매주 월요일 오전 8시 한국·미국 주요 금융일정 및 KOSPI·미국 ETF 영향 분석 앱",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0b1120",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "lang": "ko-KR",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}`
+            },
+            bubblewrap: {
+                desc: 'Google 공식 Bubblewrap CLI로 웹앱을 플레이스토어 등록용 .aab 번들로 빌드하는 명령어입니다.',
+                code: `# 1. Node.js 환경에서 Google Bubblewrap CLI 설치
+npm install -g @bubblewrap/cli
+
+# 2. 프로젝트 초기화 (호스팅한 manifest.json 주소 입력)
+bubblewrap init --manifest="https://내도메인주소/manifest.json"
+
+# 3. 구글 플레이스토어 업로드용 서명된 .aab 및 .apk 생성
+bubblewrap build`
+            },
+            capacitor: {
+                desc: 'Capacitor를 이용해 Android Studio 네이티브 프로젝트로 변환하는 명령어입니다.',
+                code: `npm init -y
+npm install @capacitor/core @capacitor/cli @capacitor/android
+npx cap init "MacroBrief Pro" "com.dongtan.macrobrief" --web-dir=dist
+
+mkdir -p dist && cp macro_brief_playstore_app.html dist/index.html
+npx cap add android
+npx cap sync
+npx cap open android`
+            }
+        };
+
+        // =====================================================================
+        // 3. 앱 상태 관리
+        // =====================================================================
+        let currentCountryFilter = 'ALL';
+        let highImportanceOnly = false;
+        let selectedEventId = WEEKLY_EVENTS[0].id;
+        let selectedScenarioType = 'beat';
+        let krStockWeight = 55;
+        let isFxHedged = false;
+        let impactChartInstance = null;
+
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            if (!box) return;
+            box.textContent = msg;
+            box.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.add('hidden');
+            }, 2400);
+        }
+
+        // =====================================================================
+        // 4. 탭 전환 (하단 네비게이션 바 연동)
+        // =====================================================================
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.toggle('hidden', panel.id !== tabId);
+            });
+            document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+                const active = btn.getAttribute('data-tab') === tabId;
+                btn.className = `nav-tab-btn flex flex-col items-center py-1 rounded-xl text-[11px] transition ${
+                    active ? 'font-bold text-blue-400 bg-blue-500/10' : 'font-medium text-slate-400 hover:text-slate-200'
+                }`;
+            });
+
+            const viewport = document.getElementById('appScrollViewport');
+            if (viewport) viewport.scrollTop = 0;
+
+            if (tabId === 'tab-scenario') {
+                renderScenarioView();
+            }
+        }
+
+        // =====================================================================
+        // 5. 탭 1: 주간 일정표 카드 렌더링 (모바일 카드 레이아웃)
+        // =====================================================================
+        function renderScheduleList() {
+            const container = document.getElementById('scheduleListContainer');
+            if (!container) return;
+
+            const filtered = WEEKLY_EVENTS.filter(ev => {
+                const matchCountry = currentCountryFilter === 'ALL' || ev.country === currentCountryFilter;
+                const matchImp = !highImportanceOnly || ev.importance === 3;
+                return matchCountry && matchImp;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-xl p-5 text-center text-xs text-slate-400">선택한 조건에 해당하는 일정이 없습니다.</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(ev => {
+                const stars = '★'.repeat(ev.importance);
+                const starColor = ev.importance === 3
+                    ? 'text-amber-300 bg-amber-500/15 border-amber-500/30'
+                    : 'text-slate-300 bg-slate-800 border-slate-700';
+
+                return `
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-2.5 shadow-sm">
+                    <div class="flex items-center justify-between gap-1.5">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-800 text-blue-300 border border-slate-700">${ev.dayLabel}</span>
+                            <span class="text-[11px] font-semibold text-slate-300">${ev.countryBadge}</span>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded border ${starColor}">중요 ${stars}</span>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-bold text-white leading-snug">${ev.title}</h3>
+                        <p class="text-xs text-slate-300 mt-1 leading-relaxed">${ev.ibForecast}</p>
+                    </div>
+
+                    <div class="bg-slate-950/85 border border-slate-800/80 rounded-xl p-2.5 space-y-1.5 text-xs">
+                        <div class="flex justify-between gap-2">
+                            <span class="text-slate-400 shrink-0">이전 수치</span>
+                            <span class="font-semibold text-slate-200 text-right">${ev.previous}</span>
+                        </div>
+                        <div class="flex justify-between gap-2 border-t border-slate-800/80 pt-1.5">
+                            <span class="text-slate-400 shrink-0">컨센서스</span>
+                            <span class="font-semibold text-emerald-300 text-right">${ev.consensus}</span>
+                        </div>
+                    </div>
+
+                    <div class="text-[11px] text-slate-400 leading-relaxed">
+                        💡 <strong class="text-slate-200">관전 포인트:</strong> ${ev.watchPoint}
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-800/70">
+                        <div class="flex items-center gap-2 text-[11px]">
+                            <a href="${ev.sourceUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline font-medium">${ev.sourceTitle}</a>
+                            <span class="text-slate-600">·</span>
+                            <a href="${ev.secondSourceUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline font-medium">${ev.secondSourceTitle}</a>
+                        </div>
+                        <button data-jump-event="${ev.id}" class="btn-jump-scenario px-2.5 py-1 rounded-lg bg-blue-600/20 border border-blue-500/40 text-blue-300 text-[11px] font-bold active:bg-blue-600/30">
+                            영향 분석 →
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            container.querySelectorAll('.btn-jump-scenario').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    selectedEventId = btn.getAttribute('data-jump-event');
+                    switchTab('tab-scenario');
+                });
+            });
+        }
+
+        // =====================================================================
+        // 6. 탭 2: 모바일 가로 스와이프 이벤트 칩 & 시나리오 분석
+        // =====================================================================
+        function renderScenarioSelector() {
+            const box = document.getElementById('scenarioEventSelector');
+            if (!box) return;
+            box.innerHTML = WEEKLY_EVENTS.map(ev => {
+                const active = ev.id === selectedEventId;
+                return `
+                <button data-ev-id="${ev.id}" class="scen-ev-btn snap-start shrink-0 px-3 py-2 rounded-xl border text-xs transition flex items-center gap-1.5 ${
+                    active ? 'bg-blue-600 border-blue-500 text-white font-bold shadow' : 'bg-slate-900 border-slate-800 text-slate-300'
+                }">
+                    <span>${ev.shortName}</span>
+                    <span class="text-amber-300 text-[10px]">${'★'.repeat(ev.importance)}</span>
+                </button>`;
+            }).join('');
+
+            box.querySelectorAll('.scen-ev-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    selectedEventId = btn.getAttribute('data-ev-id');
+                    renderScenarioView();
+                });
+            });
+        }
+
+        function renderScenarioView() {
+            renderScenarioSelector();
+            const ev = WEEKLY_EVENTS.find(e => e.id === selectedEventId) || WEEKLY_EVENTS[0];
+            const scen = ev.scenarios[selectedScenarioType];
+            const usWeight = 100 - krStockWeight;
+
+            document.getElementById('scenEventTimeBadge').textContent = `${ev.dayLabel} · ${ev.countryBadge}`;
+            document.getElementById('scenEventTitle').textContent = ev.title;
+
+            const btnBeat = document.getElementById('btnScenarioBeat');
+            const btnMiss = document.getElementById('btnScenarioMiss');
+            if (selectedScenarioType === 'beat') {
+                btnBeat.className = 'py-2 px-2 rounded-lg bg-rose-600 text-white font-bold transition text-center';
+                btnMiss.className = 'py-2 px-2 rounded-lg text-slate-400 font-medium transition text-center';
+            } else {
+                btnBeat.className = 'py-2 px-2 rounded-lg text-slate-400 font-medium transition text-center';
+                btnMiss.className = 'py-2 px-2 rounded-lg bg-emerald-600 text-white font-bold transition text-center';
+            }
+
+            const krAvgScore = (scen.scores[0] + scen.scores[1] + scen.scores[2]) / 3;
+            const usAvgScore = (scen.scores[3] + scen.scores[4]) / 2;
+            const fxAdj = isFxHedged ? 0 : (selectedScenarioType === 'beat' ? 0.25 : -0.15);
+            const totalPortfolioScore = ((krAvgScore * (krStockWeight / 100)) + ((usAvgScore + fxAdj) * (usWeight / 100))).toFixed(2);
+            const scoreBadgeClass = totalPortfolioScore >= 0
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                : 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+
+            const fxAdvice = isFxHedged
+                ? '현재 <strong>환헤지형(H)</strong> 기준: 원/달러(1,336.7원) 환율 변동을 제거하고 미국 기초지수 등락만 반영합니다.'
+                : '현재 <strong>환노출형</strong> 기준: 원/달러 환율 상승 시 달러 강세분이 미국 ETF 원화 환산 수익률을 방어합니다.';
+
+            const detailContainer = document.getElementById('scenarioDetailBody');
+            detailContainer.innerHTML = `
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-[11px] text-slate-400 font-medium">내 포트폴리오 종합 영향지수</span>
+                        <span class="px-2.5 py-0.5 rounded-md border text-xs font-bold ${scoreBadgeClass}">
+                            ${totalPortfolioScore > 0 ? '+' + totalPortfolioScore : totalPortfolioScore} / 3.00
+                        </span>
+                    </div>
+                    <div class="text-xs font-bold text-white leading-snug">${scen.headline}</div>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
+                        <div class="text-[11px] font-bold text-amber-400 mb-0.5">1. 금리 및 원/달러 환율 반응</div>
+                        <p class="text-slate-200 text-xs leading-relaxed">${scen.ratesFx}</p>
+                    </div>
+
+                    <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
+                        <div class="text-[11px] font-bold text-emerald-400 mb-0.5">2. 국내주식 (KOSPI · 비중 ${krStockWeight}%) 영향</div>
+                        <p class="text-slate-200 text-xs leading-relaxed">${scen.kospiImpact}</p>
+                    </div>
+
+                    <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
+                        <div class="text-[11px] font-bold text-blue-400 mb-0.5">3. 미국 관련 ETF (비중 ${usWeight}% · ${isFxHedged ? '환헤지 H' : '환노출'}) 영향</div>
+                        <p class="text-slate-200 text-xs leading-relaxed mb-1.5">${scen.usEtfImpact}</p>
+                        <div class="text-[11px] text-slate-400 bg-slate-900 px-2 py-1.5 rounded border border-slate-800">${fxAdvice}</div>
+                    </div>
+                </div>
+
+                <div class="text-[11px] text-slate-400 pt-1">
+                    근거 출처: <a href="${ev.sourceUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">${ev.sourceTitle}</a> · <a href="${ev.secondSourceUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">${ev.secondSourceTitle}</a>
+                </div>
+            `;
+
+            updateScenarioChart(scen.scores);
+        }
+
+        function updateScenarioChart(scores) {
+            const canvas = document.getElementById('scenarioImpactChart');
+            if (!canvas || typeof Chart === 'undefined') return;
+
+            const labels = ['KOSPI', '반도체/AI', '수출/가치', 'S&P500', '나스닥100'];
+            const colors = scores.map(v => v >= 0 ? 'rgba(16, 185, 129, 0.8)' : 'rgba(244, 63, 94, 0.8)');
+
+            if (impactChartInstance) {
+                impactChartInstance.data.datasets[0].data = scores;
+                impactChartInstance.data.datasets[0].backgroundColor = colors;
+                impactChartInstance.update();
+                return;
+            }
+
+            impactChartInstance = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '민감도 (-3 ~ +3)',
+                        data: scores,
+                        backgroundColor: colors,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: -3,
+                            max: 3,
+                            ticks: { color: '#94a3b8', font: { size: 10 } },
+                            grid: { color: 'rgba(148, 163, 184, 0.12)' }
+                        },
+                        x: {
+                            ticks: { color: '#cbd5e1', font: { size: 10 } },
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // =====================================================================
+        // 7. 탭 3: 인쇄용 상세 보고서 렌더링 & 실시간 Gemini 4 Argon 호출
+        // =====================================================================
+        function renderDefaultPrintableReport() {
+            const container = document.getElementById('reportRenderedContent');
+            if (!container) return;
+
+            const detailCardsHtml = WEEKLY_EVENTS.map(ev => `
+                <div class="print-card bg-slate-950/75 border border-slate-800 rounded-xl p-3 space-y-2">
+                    <div class="flex flex-wrap items-center justify-between gap-1">
+                        <h4 class="font-bold text-white text-xs">${ev.dayLabel} | ${ev.title}</h4>
+                        <a href="${ev.sourceUrl}" target="_blank" rel="noopener noreferrer" class="text-[11px] text-blue-400 underline">${ev.sourceTitle}</a>
+                    </div>
+                    <p class="text-[11px] text-slate-300"><strong>컨센서스 및 배경:</strong> ${ev.consensus} (${ev.ibForecast})</p>
+                    <div class="grid grid-cols-1 gap-2 pt-1 text-[11px]">
+                        <div class="bg-slate-900 border border-slate-800 rounded-lg p-2">
+                            <div class="font-bold text-rose-400 mb-0.5">▲ 시나리오 A: ${ev.scenarios.beat.headline}</div>
+                            <p class="text-slate-300"><strong>KOSPI:</strong> ${ev.scenarios.beat.kospiImpact}</p>
+                            <p class="text-slate-300 mt-0.5"><strong>미국 ETF:</strong> ${ev.scenarios.beat.usEtfImpact}</p>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800 rounded-lg p-2">
+                            <div class="font-bold text-emerald-400 mb-0.5">▼ 시나리오 B: ${ev.scenarios.miss.headline}</div>
+                            <p class="text-slate-300"><strong>KOSPI:</strong> ${ev.scenarios.miss.kospiImpact}</p>
+                            <p class="text-slate-300 mt-0.5"><strong>미국 ETF:</strong> ${ev.scenarios.miss.usEtfImpact}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = `
+                <section class="space-y-2">
+                    <h2 class="text-sm font-bold text-blue-400 border-l-4 border-blue-500 pl-2">1. 주간 핵심 매크로 진단 및 포트폴리오 요약</h2>
+                    <ul class="list-disc pl-4 space-y-1.5 text-slate-200 text-xs">
+                        <li><strong>장기금리 임계점 도달:</strong> 미 10년물 국채금리 <strong>4.7%~4.8%</strong> 구간에서 채권 도피성 자금 이동이 진정되고 있으며, 국내 증시 신용융자 잔고도 7월 저점을 하회해 수급상 매물 부담이 완화된 상태입니다(<a href="https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">삼성증권 주간 투자 전략</a>).</li>
+                        <li><strong>한·미 통화정책 연동 주의:</strong> 미 연준이 10월 기준금리를 <strong>3.75%~4.00%</strong>로 매파적 동결한 가운데 11/19(04:00 KST) 공개되는 FOMC 의사록(<a href="https://fedratecalc.com/fomc-minutes-release-schedule/" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">FedRateCalc</a>)은 차주(11/25) 한국은행 금통위(현 <strong>3.00%</strong>, <a href="https://tradingeconomics.com/south-korea/interest-rate" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">Trading Economics</a>)의 추가 인상 여부에 핵심 변수로 작용합니다(<a href="https://www.koreatimes.co.kr/economy/20261029/feds-hawkish-hold-strengthens-case-for-boks-hike-in-november" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">The Korea Times</a>).</li>
+                        <li><strong>국내주식 & 미국 ETF 대응:</strong> 엔비디아 실적(11/18 새벽)과 앤스로픽 상장(11/19 예정)을 거치며 AI 밸류체인 신뢰 회복 여부를 확인하고, 원/달러 환율 <strong>1,336.7원</strong>(<a href="https://english.mofe.go.kr/" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">기획재정부</a>) 부근에서는 미국 지수 ETF의 환노출/환헤지 비중을 금리 시나리오에 맞춰 조절합니다.</li>
+                    </ul>
+                </section>
+
+                <section class="space-y-2.5">
+                    <h2 class="text-sm font-bold text-blue-400 border-l-4 border-blue-500 pl-2">2. 주간 일정 및 시나리오별 영향 상세</h2>
+                    <div class="space-y-2.5">${detailCardsHtml}</div>
+                </section>
+            `;
+        }
+
+        async function runLiveArgonGeneration() {
+            const apiKeyInput = document.getElementById('inpGeminiApiKey');
+            const modelSelect = document.getElementById('selGeminiModel');
+            const thinkingSelect = document.getElementById('selThinkingLevel');
+            const statusLabel = document.getElementById('lblApiStatus');
+            const badgeLabel = document.getElementById('lblReportModelBadge');
+            const contentBox = document.getElementById('reportRenderedContent');
+
+            const apiKey = (apiKeyInput.value || '').trim();
+            const modelId = modelSelect.value;
+            const thinkingLevel = thinkingSelect.value;
+
+            badgeLabel.textContent = `${modelId} (${thinkingLevel})`;
+
+            if (!apiKey) {
+                statusLabel.textContent = '안내: API 키가 없어 내장된 11월 3주차 검증 리포트를 표시합니다.';
+                renderDefaultPrintableReport();
+                showToast('내장 검증 리포트가 갱신되었습니다.');
+                return;
+            }
+
+            try {
+                localStorage.setItem('macrobrief_gemini_api_key', apiKey);
+            } catch (e) {}
+
+            statusLabel.textContent = `${modelId} (${thinkingLevel}) 모델로 실시간 리포트 생성 중...`;
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${encodeURIComponent(apiKey)}`;
+                const promptText = `이번 주 발표 예정인 한국, 미국 및 주요 선진국의 금융·거시경제 이벤트 일정과 주요 IB 예측치, 그리고 국내주식(KOSPI) 및 미국 관련 ETF(S&P500, 나스닥100, 환노출/환헤지)에 미칠 시나리오별 영향을 표와 항목별로 상세히 정리해 주세요. 모든 수치에 출처 링크를 포함해 주세요.`;
+
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: promptText }] }],
+                        tools: [{ google_search: {} }],
+                        generationConfig: {
+                            thinkingConfig: { thinkingLevel: thinkingLevel }
+                        }
+                    })
+                });
+
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+                const data = await res.json();
+                const parts = data?.candidates?.[0]?.content?.parts || [];
+                const textOut = parts.map(p => p.text || '').join('\n').trim();
+
+                if (textOut) {
+                    const formattedHtml = textOut
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/\n/g, '<br>');
+                    contentBox.innerHTML = `<div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs leading-relaxed text-slate-200">${formattedHtml}</div>`;
+                    statusLabel.textContent = `완료: ${modelId} 실시간 생성 성공 (${new Date().toLocaleTimeString('ko-KR')})`;
+                    showToast('실시간 AI 리포트 생성 완료!');
+                } else {
+                    throw new Error('Empty response');
+                }
+            } catch (err) {
+                statusLabel.textContent = `호출 오류(${err.message}) — 검증된 기본 리포트를 유지합니다.`;
+                renderDefaultPrintableReport();
+                showToast('기본 검증 리포트를 표시합니다.');
+            }
+        }
+
+        // =====================================================================
+        // 8. 탭 4: 설정 코드 뷰어 및 클립보드 복사
+        // =====================================================================
+        function renderConfigViewer(cfgKey) {
+            const item = CONFIG_TEMPLATES[cfgKey] || CONFIG_TEMPLATES.workflow;
+            document.getElementById('cfgDescriptionText').textContent = item.desc;
+            document.getElementById('cfgCodeDisplay').textContent = item.code;
+
+            document.querySelectorAll('.cfg-tab-btn').forEach(btn => {
+                const active = btn.getAttribute('data-cfg') === cfgKey;
+                btn.className = `cfg-tab-btn py-1.5 px-2 rounded-lg text-xs text-center transition ${
+                    active ? 'font-semibold bg-blue-600 text-white' : 'font-medium bg-slate-800 text-slate-300'
+                }`;
+            });
+        }
+
+        function copyCurrentConfigCode() {
+            const codeText = document.getElementById('cfgCodeDisplay').textContent;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(codeText).then(() => {
+                    showToast('코드가 클립보드에 복사되었습니다!');
+                }).catch(() => fallbackCopy(codeText));
+            } else {
+                fallbackCopy(codeText);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast('코드가 클립보드에 복사되었습니다!');
+            } catch (e) {}
+            document.body.removeChild(ta);
+        }
+
+        // =====================================================================
+        // 9. 스마트폰 화면 미리보기 프레임 전환 및 초기화
+        // =====================================================================
+        function setPreviewMode(mode) {
+            const body = document.body;
+            const btnPhone = document.getElementById('btnModePhone');
+            const btnWide = document.getElementById('btnModeWide');
+            const lblStatus = document.getElementById('lblViewportStatus');
+
+            if (mode === 'wide') {
+                body.classList.remove('phone-preview-mode');
+                body.classList.add('wide-preview-mode');
+                btnWide.className = 'px-2.5 py-1 rounded-full bg-blue-600 text-white font-semibold text-[11px] transition';
+                btnPhone.className = 'px-2.5 py-1 rounded-full text-slate-400 hover:text-white font-medium text-[11px] transition';
+                lblStatus.textContent = '데스크톱 와이드 화면 모드';
+            } else {
+                body.classList.remove('wide-preview-mode');
+                body.classList.add('phone-preview-mode');
+                btnPhone.className = 'px-2.5 py-1 rounded-full bg-blue-600 text-white font-semibold text-[11px] transition';
+                btnWide.className = 'px-2.5 py-1 rounded-full text-slate-400 hover:text-white font-medium text-[11px] transition';
+                lblStatus.textContent = '스마트폰 미리보기 (412px · 갤럭시 비율)';
+            }
+
+            if (impactChartInstance) {
+                setTimeout(() => impactChartInstance.resize(), 100);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Update simulated status bar clock
+            const now = new Date();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            const clockEl = document.getElementById('lblStatusBarClock');
+            if (clockEl) clockEl.textContent = `${hh}:${mm}`;
+
+            // Load stored API key
+            try {
+                const savedKey = localStorage.getItem('macrobrief_gemini_api_key');
+                if (savedKey) {
+                    document.getElementById('inpGeminiApiKey').value = savedKey;
+                }
+            } catch (e) {}
+
+            // Initial renders
+            renderScheduleList();
+            renderScenarioView();
+            renderDefaultPrintableReport();
+            renderConfigViewer('workflow');
+
+            // Preview mode switcher buttons
+            document.getElementById('btnModePhone').addEventListener('click', () => setPreviewMode('phone'));
+            document.getElementById('btnModeWide').addEventListener('click', () => setPreviewMode('wide'));
+
+            // Bottom Nav Tab buttons
+            document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchTab(btn.getAttribute('data-tab'));
+                });
+            });
+
+            // Country filter buttons
+            document.querySelectorAll('.country-filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentCountryFilter = btn.getAttribute('data-country');
+                    document.querySelectorAll('.country-filter-btn').forEach(b => {
+                        const active = b.getAttribute('data-country') === currentCountryFilter;
+                        b.className = `country-filter-btn px-2.5 py-1 rounded-lg text-xs shrink-0 transition ${
+                            active ? 'font-semibold bg-blue-600 text-white' : 'font-medium bg-slate-800 text-slate-300'
+                        }`;
+                    });
+                    renderScheduleList();
+                });
+            });
+
+            // High importance checkbox
+            document.getElementById('chkHighImportanceOnly').addEventListener('change', (e) => {
+                highImportanceOnly = e.target.checked;
+                renderScheduleList();
+            });
+
+            // Portfolio slider & FX buttons
+            document.getElementById('sliderKrWeight').addEventListener('input', (e) => {
+                krStockWeight = parseInt(e.target.value, 10) || 55;
+                document.getElementById('lblKrWeight').textContent = krStockWeight;
+                document.getElementById('lblUsWeight').textContent = 100 - krStockWeight;
+                renderScenarioView();
+            });
+
+            document.getElementById('btnFxUnhedged').addEventListener('click', () => {
+                isFxHedged = false;
+                document.getElementById('btnFxUnhedged').className = 'px-2 py-1 rounded bg-blue-600 text-white font-semibold';
+                document.getElementById('btnFxHedged').className = 'px-2 py-1 rounded text-slate-400 font-medium';
+                renderScenarioView();
+            });
+
+            document.getElementById('btnFxHedged').addEventListener('click', () => {
+                isFxHedged = true;
+                document.getElementById('btnFxHedged').className = 'px-2 py-1 rounded bg-blue-600 text-white font-semibold';
+                document.getElementById('btnFxUnhedged').className = 'px-2 py-1 rounded text-slate-400 font-medium';
+                renderScenarioView();
+            });
+
+            // Scenario A / B toggle
+            document.getElementById('btnScenarioBeat').addEventListener('click', () => {
+                selectedScenarioType = 'beat';
+                renderScenarioView();
+            });
+            document.getElementById('btnScenarioMiss').addEventListener('click', () => {
+                selectedScenarioType = 'miss';
+                renderScenarioView();
+            });
+
+            // AI Report & PDF actions
+            document.getElementById('btnRunArgonLive').addEventListener('click', runLiveArgonGeneration);
+            document.getElementById('btnResetDefaultReport').addEventListener('click', () => {
+                renderDefaultPrintableReport();
+                document.getElementById('lblApiStatus').textContent = '상태: 2026년 11월 3주차 기본 검증 리포트 복원됨';
+                showToast('기본 검증 리포트가 복원되었습니다.');
+            });
+
+            const triggerPrintPdf = () => {
+                switchTab('tab-ai-pdf');
+                setTimeout(() => {
+                    window.print();
+                }, 150);
+            };
+            document.getElementById('btnPrintPdfTop').addEventListener('click', triggerPrintPdf);
+            document.getElementById('btnPrintPdfReportTab').addEventListener('click', triggerPrintPdf);
+
+            document.getElementById('btnInstallGuideTop').addEventListener('click', () => {
+                switchTab('tab-playstore');
+            });
+
+            // Config viewer tabs & copy
+            document.querySelectorAll('.cfg-tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    renderConfigViewer(btn.getAttribute('data-cfg'));
+                });
+            });
+            document.getElementById('btnCopyConfigCode').addEventListener('click', copyCurrentConfigCode);
+        });
+    </script>
+</body>
+</html>

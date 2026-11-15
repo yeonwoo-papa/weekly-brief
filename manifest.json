@@ -1,0 +1,11 @@
+{
+  "name": "MacroBrief Pro - 주간 금융일정 & 포트폴리오 리포트",
+  "short_name": "MacroBrief",
+  "description": "매주 월요일 오전 8시 한국·미국 주요 금융일정 및 KOSPI·미국 ETF 영향 분석 앱",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b1120",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "lang": "ko-KR"
+}
