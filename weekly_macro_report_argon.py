@@ -24,6 +24,7 @@ import datetime
 import os
 from pathlib import Path
 import time
+import xml.etree.ElementTree as ET
 import requests
 import markdown
 from dotenv import load_dotenv
@@ -100,6 +101,31 @@ def build_prompt(week_range: str) -> str:
 # =====================================================================
 # 2. Gemini 4 Argon API 호출 (Google Search Grounding 활성화)
 # =====================================================================
+
+def fetch_live_macro_rss(max_items: int = 25) -> str:
+    """Google Search Grounding이 무료 티어에서 제한될 경우를 대비해 무료 RSS에서 최신 경제/시장 뉴스를 수집합니다."""
+    feeds = [
+        ("미국/글로벌 증시", "https://news.google.com/rss/search?q=FOMC+OR+US+retail+sales+OR+Nvidia+earnings+OR+Goldman+Sachs+forecast&hl=en-US&gl=US&ceid=US:en"),
+        ("한국 금융/코스피", "https://news.google.com/rss/search?q=%ED%95%9C%EA%B5%AD%EC%9D%80%ED%96%89+%EA%B8%88%EB%A6%AC+OR+%EC%BD%94%EC%8A%A4%ED%94%BC+%EC%A0%84%EB%A7%9D+OR+%EA%B2%BD%EC%A0%9C%EC%A7%80%ED%91%9C+%EC%9D%BC%EC%A0%95&hl=ko&gl=KR&ceid=KR:ko"),
+    ]
+    lines: list[str] = []
+    for label, url in feeds:
+        try:
+            r = requests.get(url, timeout=10)
+            r.raise_for_status()
+            root = ET.fromstring(r.content)
+            items = root.findall(".//item")[: max_items // 2]
+            lines.append(f"### [{label} 최신 헤드라인]")
+            for it in items:
+                title = (it.findtext("title") or "").strip()
+                link = (it.findtext("link") or "").strip()
+                pub = (it.findtext("pubDate") or "").strip()
+                if title:
+                    lines.append(f"- {title} ({pub}) - {link}")
+        except Exception:
+            continue
+    return "\n".join(lines)
+
 def generate_macro_report_markdown(week_range: str) -> str:
     """Gemini 4 Argon 모델을 호출하여 Google 검색 기반 마크다운 보고서를 생성합니다."""
     api_key = os.environ.get("GEMINI_API_KEY")
@@ -113,9 +139,10 @@ def generate_macro_report_markdown(week_range: str) -> str:
     response = None
     last_error = None
 
+    # 1차 시도: Google Search Grounding 포함 호출
     for candidate_model in MODEL_CANDIDATES:
         try:
-            print(f"[{datetime.datetime.now():%Y-%m-%d %H:%M:%S}] {candidate_model} 모델(Thinking: {THINKING_LEVEL})로 주간 리포트 생성 중...")
+            print(f"[{datetime.datetime.now():%Y-%m-%d %H:%M:%S}] {candidate_model} (Search 포함) 모델로 주간 리포트 생성 중...")
             response = client.models.generate_content(
                 model=candidate_model,
                 contents=prompt,
@@ -123,7 +150,6 @@ def generate_macro_report_markdown(week_range: str) -> str:
                     thinking_config=types.ThinkingConfig(
                         thinking_level=THINKING_LEVEL,
                     ),
-                    # Google Search Grounding 활성화 (최신 일정 및 IB 리포트 검색)
                     tools=[types.Tool(google_search=types.GoogleSearch())],
                     max_output_tokens=16384,
                 ),
@@ -132,8 +158,30 @@ def generate_macro_report_markdown(week_range: str) -> str:
             break
         except Exception as e:
             last_error = e
-            print(f"[경고] {candidate_model} 호출 실패 ({e}). 다음 예비 모델로 전환합니다...")
-            time.sleep(2)
+            print(f"[경고] {candidate_model} (Search 포함) 호출 실패 ({e}).")
+            time.sleep(1)
+
+    # 2차 시도: Search Grounding이 무료 티어에서 막힌 경우, 무료 RSS 뉴스 수집 후 일반 호출로 전환
+    if response is None:
+        print("[안내] 무료 RSS 피드에서 최신 금융 뉴스를 수집하여 일반 모드로 재시도합니다...")
+        rss_context = fetch_live_macro_rss()
+        fallback_prompt = prompt + f"\n\n[참고용 최신 금융·거시경제 RSS 뉴스]\n{rss_context}"
+        for candidate_model in MODEL_CANDIDATES:
+            try:
+                print(f"[{datetime.datetime.now():%Y-%m-%d %H:%M:%S}] {candidate_model} (RSS 기반) 모델로 재시도 중...")
+                response = client.models.generate_content(
+                    model=candidate_model,
+                    contents=fallback_prompt,
+                    config=types.GenerateContentConfig(
+                        max_output_tokens=16384,
+                    ),
+                )
+                MODEL_ID = candidate_model
+                break
+            except Exception as e:
+                last_error = e
+                print(f"[경고] {candidate_model} (RSS 기반) 호출 실패 ({e}).")
+                time.sleep(1)
 
     if response is None:
         raise RuntimeError(f"모든 Gemini 모델 호출에 실패했습니다. 마지막 오류: {last_error}")
