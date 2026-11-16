@@ -2,7 +2,7 @@
 주간 주요국 금융·거시경제 일정 및 시장 영향 리포트 생성기 (Gemini 4 Argon 기반)
 --------------------------------------------------------------------------------
 - 실행 주기: 매주 월요일 오전 08:00 (자체 스케줄러 내장 또는 Windows 작업 스케줄러 연동)
-- 사용 모델: gemini-4-argon (Google Search Grounding 및 ThinkingConfig 활성화)
+- 사용 모델: gemini-3.8-flash (Google Search Grounding 및 ThinkingConfig 활성화)
 - 주요 기능:
   1. 한국·미국·주요 선진국(유로존·영국·일본) 주간 금융·경제 일정 웹 검색 조회
   2. 시장 컨센서스 및 주요 IB(Goldman Sachs, JPMorgan, Morgan Stanley, BofA, Citi 등) 예측치 수집
