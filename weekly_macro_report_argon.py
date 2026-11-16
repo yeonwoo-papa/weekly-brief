@@ -1,8 +1,9 @@
+```python
 """
 주간 주요국 금융·거시경제 일정 및 시장 영향 리포트 생성기 (Gemini 4 Argon 기반)
 --------------------------------------------------------------------------------
 - 실행 주기: 매주 월요일 오전 08:00 (자체 스케줄러 내장 또는 Windows 작업 스케줄러 연동)
-- 사용 모델: gemini-3.8-flash (Google Search Grounding 및 ThinkingConfig 활성화)
+- 사용 모델: gemini-4-argon (Google Search Grounding 및 ThinkingConfig 활성화)
 - 주요 기능:
   1. 한국·미국·주요 선진국(유로존·영국·일본) 주간 금융·경제 일정 웹 검색 조회
   2. 시장 컨센서스 및 주요 IB(Goldman Sachs, JPMorgan, Morgan Stanley, BofA, Citi 등) 예측치 수집
@@ -35,8 +36,13 @@ load_dotenv()
 # =====================================================================
 # 1. 기본 설정
 # =====================================================================
-MODEL_ID = "gemini-3.8-flash"  # 더 깊은 검증이 필요할 경우 "gemini-4-carbon"으로 변경 가능
-THINKING_LEVEL = "HIGH"      # 금융 리서치 및 다중 출처 교차 검증을 위해 HIGH 설정 ("LOW", "MEDIUM", "HIGH")
+MODEL_CANDIDATES = [
+    "gemini-3.8-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash-lite",
+]
+MODEL_ID = MODEL_CANDIDATES[0]
+THINKING_LEVEL = "MEDIUM"  # 무료 티어 토큰/할당량 초과(429) 방지를 위해 MEDIUM 권장 ("LOW", "MEDIUM", "HIGH")
 OUTPUT_DIR = Path("./weekly_macro_reports")
 
 
@@ -104,20 +110,34 @@ def generate_macro_report_markdown(week_range: str) -> str:
     client = genai.Client(api_key=api_key)
     prompt = build_prompt(week_range)
 
-    print(f"[{datetime.datetime.now():%Y-%m-%d %H:%M:%S}] {MODEL_ID} 모델(Thinking: {THINKING_LEVEL})로 주간 리포트 생성 중...")
+    global MODEL_ID
+    response = None
+    last_error = None
 
-    response = client.models.generate_content(
-        model=MODEL_ID,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            thinking_config=types.ThinkingConfig(
-                thinking_level=THINKING_LEVEL,
-            ),
-            # Google Search Grounding 활성화 (최신 일정 및 IB 리포트 검색)
-            tools=[types.Tool(google_search=types.GoogleSearch())],
-            max_output_tokens=65536,
-        ),
-    )
+    for candidate_model in MODEL_CANDIDATES:
+        try:
+            print(f"[{datetime.datetime.now():%Y-%m-%d %H:%M:%S}] {candidate_model} 모델(Thinking: {THINKING_LEVEL})로 주간 리포트 생성 중...")
+            response = client.models.generate_content(
+                model=candidate_model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    thinking_config=types.ThinkingConfig(
+                        thinking_level=THINKING_LEVEL,
+                    ),
+                    # Google Search Grounding 활성화 (최신 일정 및 IB 리포트 검색)
+                    tools=[types.Tool(google_search=types.GoogleSearch())],
+                    max_output_tokens=16384,
+                ),
+            )
+            MODEL_ID = candidate_model
+            break
+        except Exception as e:
+            last_error = e
+            print(f"[경고] {candidate_model} 호출 실패 ({e}). 다음 예비 모델로 전환합니다...")
+            time.sleep(2)
+
+    if response is None:
+        raise RuntimeError(f"모든 Gemini 모델 호출에 실패했습니다. 마지막 오류: {last_error}")
 
     report_md = response.text or ""
 
@@ -378,3 +398,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+```
