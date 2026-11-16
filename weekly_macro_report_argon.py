@@ -35,7 +35,7 @@ load_dotenv()
 # =====================================================================
 # 1. 기본 설정
 # =====================================================================
-MODEL_ID = "gemini-4-argon"  # 더 깊은 검증이 필요할 경우 "gemini-4-carbon"으로 변경 가능
+MODEL_ID = "gemini-3.8-flash"  # 더 깊은 검증이 필요할 경우 "gemini-4-carbon"으로 변경 가능
 THINKING_LEVEL = "HIGH"      # 금융 리서치 및 다중 출처 교차 검증을 위해 HIGH 설정 ("LOW", "MEDIUM", "HIGH")
 OUTPUT_DIR = Path("./weekly_macro_reports")
 
