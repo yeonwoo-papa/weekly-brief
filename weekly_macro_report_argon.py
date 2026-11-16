@@ -21,6 +21,7 @@
 
 import argparse
 import datetime
+import json
 import os
 from pathlib import Path
 import time
@@ -328,6 +329,90 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 """
 
 
+
+def generate_web_sync_json(report_md: str, week_range: str) -> None:
+    """생성된 마크다운 리포트를 모바일 웹앱(index.html) 동기화용 latest_report.json으로 변환 저장합니다."""
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        return
+
+    client = genai.Client(api_key=api_key)
+    schema_prompt = f"""
+아래 주간 금융 리포트 Markdown을 모바일 웹앱에서 바로 렌더링할 수 있는 순수 JSON 객체로 변환해 주세요.
+반드시 유효한 JSON만 출력하고 마크다운 코드블록(```json)은 쓰지 마세요.
+
+필수 JSON 구조:
+{{
+  "weekLabel": "{week_range}",
+  "updatedAt": "{datetime.datetime.now().strftime('%Y-%m-%d %H:%M KST')}",
+  "modelUsed": "{MODEL_ID}",
+  "heroHeadline": "이번 주 핵심 한 줄 헤드라인",
+  "heroSummary": "이번 주 매크로 요약 2~3문장",
+  "kospiSummary": "국내주식(KOSPI) 주간 대응 요약 1~2문장",
+  "usEtfSummary": "미국 관련 ETF 주간 대응 요약 1~2문장",
+  "events": [
+    {{
+      "id": "event-1",
+      "dayLabel": "11/17 (화) 22:30 KST",
+      "shortName": "11/17 미 소매판매",
+      "country": "US 또는 KR",
+      "countryBadge": "🇺🇸 미국 또는 🇰🇷 한국/글로벌",
+      "title": "이벤트 전체 이름",
+      "importance": 3,
+      "previous": "이전 수치",
+      "consensus": "시장 예상치",
+      "ibForecast": "주요 IB·기관 전망 요약 1~2문장",
+      "sourceTitle": "출처명",
+      "sourceUrl": "https://...",
+      "secondSourceTitle": "보조 출처명",
+      "secondSourceUrl": "https://...",
+      "watchPoint": "핵심 관전 포인트 1문장",
+      "scenarios": {{
+        "beat": {{
+          "headline": "예상 상회/매파적 결과 요약",
+          "ratesFx": "금리 및 원/달러 환율 반응",
+          "kospiImpact": "국내주식(KOSPI) 영향",
+          "usEtfImpact": "미국 관련 ETF(환노출/환헤지 포함) 영향",
+          "scores": [-1.0, -1.5, 1.0, -0.5, -1.2]
+        }},
+        "miss": {{
+          "headline": "예상 하회/비둘기파적 결과 요약",
+          "ratesFx": "금리 및 원/달러 환율 반응",
+          "kospiImpact": "국내주식(KOSPI) 영향",
+          "usEtfImpact": "미국 관련 ETF(환노출/환헤지 포함) 영향",
+          "scores": [1.2, 1.5, 0.8, 1.4, 1.8]
+        }}
+      }}
+    }}
+  ]
+}}
+
+[변환할 리포트 원문]
+{report_md[:12000]}
+"""
+    for candidate_model in MODEL_CANDIDATES:
+        try:
+            res = client.models.generate_content(
+                model=candidate_model,
+                contents=schema_prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    max_output_tokens=8192,
+                ),
+            )
+            raw = (res.text or "").strip()
+            data = json.loads(raw)
+            if isinstance(data, dict) and data.get("events"):
+                Path("latest_report.json").write_text(
+                    json.dumps(data, ensure_ascii=False, indent=2),
+                    encoding="utf-8",
+                )
+                print("[완료] 모바일 웹앱 동기화용 latest_report.json 저장 완료")
+                return
+        except Exception as e:
+            print(f"[안내] {candidate_model} JSON 변환 건너뜀 ({e})")
+            time.sleep(1)
+
 def save_report_files(report_md: str, week_range: str, file_stamp: str) -> tuple[Path, Path, Path]:
     """마크다운 텍스트를 .md, .html, .pdf 파일로 각각 저장합니다."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -419,6 +504,7 @@ def run_weekly_job() -> None:
     week_range, _, file_stamp = get_week_date_range()
     report_md = generate_macro_report_markdown(week_range)
     _, _, pdf_path = save_report_files(report_md, week_range, file_stamp)
+    generate_web_sync_json(report_md, week_range)
     send_telegram_report(pdf_path, week_range, report_md)
 
 

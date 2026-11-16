@@ -1,10 +1,13 @@
-name: Weekly Macro Report (Gemini 4 Argon)
+name: Weekly Macro Report & Web Sync
 
 on:
   schedule:
     # 매주 월요일 오전 08:00 KST (UTC 기준 일요일 23:00)
     - cron: '0 23 * * 0'
-  workflow_dispatch: # 버튼 클릭으로 언제든 즉시 수동 테스트 실행 가능
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build-and-send-report:
@@ -23,11 +26,21 @@ jobs:
           pip install --upgrade -r requirements.txt
           playwright install --with-deps chromium
 
-      - name: Generate Weekly PDF Report & Send via Telegram
+      - name: Generate Weekly PDF Report, Web JSON & Send Telegram
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TZ: 'Asia/Seoul'
         run: |
-          python weekly_macro_report_argon.py
+          python -u weekly_macro_report_argon.py
+
+      - name: Commit & Push latest_report.json for Mobile Web Sync
+        run: |
+          if [ -f latest_report.json ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add latest_report.json
+            git diff --staged --quiet || git commit -m "chore: update weekly macro report JSON [skip ci]"
+            git push
+          fi

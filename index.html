@@ -286,17 +286,17 @@
                 <!-- Mobile Hero Summary Card -->
                 <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/75 border border-slate-800 rounded-2xl p-3.5 shadow-md space-y-2.5">
                     <div class="flex items-center justify-between gap-2">
-                        <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                        <span id="lblHeroWeekBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                             11월 3주차 (11/16 월 ~ 11/20 금)
                         </span>
                         <span class="text-[11px] text-emerald-400 font-semibold">KOSPI · 미국ETF 집중</span>
                     </div>
 
-                    <h2 class="text-sm font-bold text-white leading-snug">
+                    <h2 id="lblHeroHeadline" class="text-sm font-bold text-white leading-snug">
                         미 소매판매(11/17)·엔비디아 실적·FOMC 의사록(11/19) 집중 주간
                     </h2>
 
-                    <p class="text-xs text-slate-300 leading-relaxed">
+                    <p id="lblHeroSummary" class="text-xs text-slate-300 leading-relaxed">
                         미 10년물 국채금리 <strong class="text-white">4.7%~4.8%</strong> 구간에서 채권 도피성 머니무브가 둔화되고 있으며(<a href="https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">삼성증권 주간 전략</a>), 콜레트 크레스 임시 CEO 체제로 전환한 엔비디아 실적 발표(<a href="https://www.koreajoongangdaily.com/business/kospi-opens-higher-after-nvidia-leadership-change/12971349" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">Korea JoongAng Daily</a>)와 10월 FOMC 의사록(<a href="https://fedratecalc.com/fomc-minutes-release-schedule/" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">FedRateCalc</a>)이 주간 승부처입니다.
                     </p>
 
@@ -539,7 +539,7 @@
         // =====================================================================
         // 1. 검증된 2026년 11월 3주차(11/16~11/20) 글로벌 매크로 데이터셋
         // =====================================================================
-        const WEEKLY_EVENTS = [
+        let WEEKLY_EVENTS = [
             {
                 id: 'us-retail-sales',
                 dayLabel: '11/17 (화) 22:30 KST',
@@ -1302,6 +1302,48 @@ npx cap open android`
 
             if (impactChartInstance) {
                 setTimeout(() => impactChartInstance.resize(), 100);
+            }
+        }
+
+        
+        async function syncLatestReportFromRepo() {
+            try {
+                const res = await fetch('./latest_report.json?t=' + Date.now());
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!data || !Array.isArray(data.events) || data.events.length === 0) return;
+
+                WEEKLY_EVENTS = data.events;
+                selectedEventId = WEEKLY_EVENTS[0].id || 'event-1';
+
+                const weekBadge = document.getElementById('lblHeroWeekBadge');
+                const headlineEl = document.getElementById('lblHeroHeadline');
+                const summaryEl = document.getElementById('lblHeroSummary');
+                const modelBadge = document.getElementById('lblReportModelBadge');
+                const apiStatus = document.getElementById('lblApiStatus');
+
+                if (weekBadge && data.weekLabel) {
+                    weekBadge.textContent = `${data.weekLabel} (자동 동기화됨)`;
+                }
+                if (headlineEl && data.heroHeadline) {
+                    headlineEl.textContent = data.heroHeadline;
+                }
+                if (summaryEl && data.heroSummary) {
+                    summaryEl.textContent = data.heroSummary;
+                }
+                if (modelBadge && data.modelUsed) {
+                    modelBadge.textContent = data.modelUsed;
+                }
+                if (apiStatus && data.updatedAt) {
+                    apiStatus.textContent = `동기화 완료: ${data.updatedAt} (${data.modelUsed || ''})`;
+                }
+
+                renderScheduleList();
+            syncLatestReportFromRepo();
+                renderScenarioView();
+                renderDefaultPrintableReport();
+            } catch (e) {
+                // Offline/local preview fallback uses built-in WEEKLY_EVENTS
             }
         }
 
