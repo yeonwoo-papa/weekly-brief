@@ -10,17 +10,19 @@
     <title>MacroBrief Pro — 스마트폰 최적화 주간 금융일정 & KOSPI·미국ETF 앱</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
         body {
-            font-family: 'Inter', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            font-family: 'Pretendard', 'Inter', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
             background-color: #060a14;
-            color: #e2e8f0;
+            color: #f1f5f9;
             -webkit-tap-highlight-color: transparent;
             margin: 0;
             padding: 0;
+            letter-spacing: -0.01em;
         }
         ::-webkit-scrollbar {
             width: 4px;
@@ -138,105 +140,51 @@
         </div>
 
         <!-- Sticky Mobile App Header -->
-        <header class="bg-slate-900/95 backdrop-blur border-b border-slate-800/90 px-3.5 py-2.5 shrink-0">
+        <header class="bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 py-2.5 shrink-0">
             <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2 min-w-0">
-                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow font-bold text-white text-xs shrink-0">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md font-extrabold text-white text-xs shrink-0">
                         MB
                     </div>
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5">
-                            <h1 class="text-sm font-bold text-white truncate">MacroBrief Pro</h1>
-                            <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0">Live</span>
+                            <h1 class="text-[15px] font-extrabold text-white truncate">MacroBrief Pro</h1>
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">주간브리핑</span>
                         </div>
-                        <p class="text-[11px] text-slate-400 truncate">매주 월 08:00 · 국내주식 & 미국ETF</p>
+                        <p class="text-[11px] text-slate-400 truncate">한국·미국 핵심 거시일정 & 포트폴리오 전략</p>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-1.5 shrink-0">
-                    <button id="btnInstallGuideTop" class="px-2.5 py-1.5 rounded-lg bg-blue-600 active:bg-blue-500 text-white text-[11px] font-semibold shadow-sm transition">
-                        📲 스토어/클라우드 배포
+                    <button id="btnInstallGuideTop" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 text-[11px] font-semibold border border-slate-700 transition">
+                        ⚙️ 배포·설정
                     </button>
                 </div>
             </div>
         </header>
 
         <!-- Persistent Sync Status Bar (Always visible right below header) -->
-        <div id="syncStatusBar" class="bg-slate-900/90 border-b border-slate-800/90 px-3.5 py-1.5 flex items-center justify-between gap-2 shrink-0">
+        <div id="syncStatusBar" class="bg-slate-950 border-b border-slate-800/90 px-4 py-1.5 flex items-center justify-between gap-2 shrink-0">
             <div id="lblSyncStatusBadge" class="text-[11px] font-medium text-amber-300 truncate">
                 🟡 기본 내장 데이터 표시 중 (2026-11-13 기준 · latest_report.json 미연동)
             </div>
-            <button id="btnRefreshSync" type="button" class="px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 text-[11px] font-semibold border border-slate-700 shrink-0 transition flex items-center gap-1">
+            <button id="btnRefreshSync" type="button" class="px-2.5 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 text-[11px] font-semibold border border-slate-700 shrink-0 transition flex items-center gap-1">
                 <span id="icoRefreshSync">🔄</span>
                 <span>새로고침</span>
             </button>
         </div>
 
-        <!-- Single-Row Horizontal Swipe Market Ticker Strip (Optimized for Mobile) -->
-        <section class="bg-slate-950 border-b border-slate-800/80 px-3 py-2 shrink-0 no-print">
-            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-                <a href="https://www.koreajoongangdaily.com/business/kospi-opens-higher-after-nvidia-leadership-change/12971349" target="_blank" rel="noopener noreferrer" class="snap-start shrink-0 w-36 bg-slate-900/90 active:bg-slate-800 border border-slate-800 rounded-xl p-2 transition block">
-                    <div class="text-[10px] text-slate-400 flex items-center justify-between">
-                        <span>KOSPI (11/13)</span>
-                        <span class="text-emerald-400 font-bold">+2.05%</span>
-                    </div>
-                    <div class="text-xs font-bold text-white mt-0.5">5,452.41</div>
-                    <div class="text-[10px] text-slate-500 truncate">전일 5,342.73</div>
-                </a>
-
-                <a href="https://english.mofe.go.kr/" target="_blank" rel="noopener noreferrer" class="snap-start shrink-0 w-36 bg-slate-900/90 active:bg-slate-800 border border-slate-800 rounded-xl p-2 transition block">
-                    <div class="text-[10px] text-slate-400 flex items-center justify-between">
-                        <span>USD/KRW</span>
-                        <span class="text-amber-300 font-semibold">11/13</span>
-                    </div>
-                    <div class="text-xs font-bold text-white mt-0.5">1,336.70원</div>
-                    <div class="text-[10px] text-slate-500 truncate">현물 1,335.29원</div>
-                </a>
-
-                <a href="https://tradingeconomics.com/united-states/currency" target="_blank" rel="noopener noreferrer" class="snap-start shrink-0 w-32 bg-slate-900/90 active:bg-slate-800 border border-slate-800 rounded-xl p-2 transition block">
-                    <div class="text-[10px] text-slate-400 flex items-center justify-between">
-                        <span>달러 DXY</span>
-                        <span class="text-slate-400">-0.01%</span>
-                    </div>
-                    <div class="text-xs font-bold text-white mt-0.5">103.17</div>
-                    <div class="text-[10px] text-slate-500 truncate">103선 강보합</div>
-                </a>
-
-                <a href="https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf" target="_blank" rel="noopener noreferrer" class="snap-start shrink-0 w-36 bg-slate-900/90 active:bg-slate-800 border border-slate-800 rounded-xl p-2 transition block">
-                    <div class="text-[10px] text-slate-400 flex items-center justify-between">
-                        <span>미 10년물 금리</span>
-                        <span class="text-blue-400 font-semibold">임계선</span>
-                    </div>
-                    <div class="text-xs font-bold text-white mt-0.5">4.7% ~ 4.8%</div>
-                    <div class="text-[10px] text-slate-500 truncate">채권 도피 둔화 구간</div>
-                </a>
-
-                <a href="https://www.koreatimes.co.kr/economy/20261029/feds-hawkish-hold-strengthens-case-for-boks-hike-in-november" target="_blank" rel="noopener noreferrer" class="snap-start shrink-0 w-36 bg-slate-900/90 active:bg-slate-800 border border-slate-800 rounded-xl p-2 transition block">
-                    <div class="text-[10px] text-slate-400 flex items-center justify-between">
-                        <span>미 연준 금리</span>
-                        <span class="text-rose-400 font-semibold">매파동결</span>
-                    </div>
-                    <div class="text-xs font-bold text-white mt-0.5">3.75~4.00%</div>
-                    <div class="text-[10px] text-slate-500 truncate">11/19 의사록 공개</div>
-                </a>
-
-                <a href="https://tradingeconomics.com/south-korea/interest-rate" target="_blank" rel="noopener noreferrer" class="snap-start shrink-0 w-36 bg-slate-900/90 active:bg-slate-800 border border-slate-800 rounded-xl p-2 transition block">
-                    <div class="text-[10px] text-slate-400 flex items-center justify-between">
-                        <span>한은 기준금리</span>
-                        <span class="text-amber-400 font-semibold">11/25 금통위</span>
-                    </div>
-                    <div class="text-xs font-bold text-white mt-0.5">3.00%</div>
-                    <div class="text-[10px] text-slate-500 truncate">7·8월 인상 후 동결</div>
-                </a>
-            </div>
+        <!-- Dynamic Quick Event Jump Bar (Auto-rendered from WEEKLY_EVENTS) -->
+        <section class="bg-slate-900/75 border-b border-slate-800/80 px-3.5 py-2 shrink-0">
+            <div id="quickEventTimeline" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar snap-x"></div>
         </section>
 
         <!-- Wide-Mode Top Navigation Bar (Hidden in Phone Preview Mode) -->
         <div id="wideTopTabBar" class="px-3.5 pt-2.5 shrink-0">
             <div class="grid grid-cols-3 gap-1.5 bg-slate-900 p-1.5 rounded-xl border border-slate-800">
-                <button data-tab="tab-schedule" class="nav-tab-btn py-2 px-3 rounded-lg text-xs font-semibold transition bg-blue-600 text-white">📅 주간 일정표</button>
-                <button data-tab="tab-scenario" class="nav-tab-btn py-2 px-3 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">📊 IB 예측·시나리오</button>
-                <button data-tab="tab-playstore" class="nav-tab-btn py-2 px-3 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">🚀 스토어·서버리스</button>
+                <button data-tab="tab-schedule" class="nav-tab-btn py-2 px-3 rounded-lg text-xs font-semibold transition bg-blue-600 text-white">📅 주간 핵심브리핑 · 일정</button>
+                <button data-tab="tab-scenario" class="nav-tab-btn py-2 px-3 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">📊 시나리오 · 포트폴리오</button>
+                <button data-tab="tab-playstore" class="nav-tab-btn py-2 px-3 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-white">🚀 스토어 · 자동화 설정</button>
             </div>
         </div>
 
@@ -246,52 +194,73 @@
             <!-- ========================================== -->
             <!-- TAB 1: 주간 일정표 & 모바일 브리핑 카드 -->
             <!-- ========================================== -->
-            <section id="tab-schedule" class="tab-panel space-y-3.5">
-                <!-- Mobile Hero Summary Card -->
-                <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/75 border border-slate-800 rounded-2xl p-3.5 shadow-md space-y-2.5">
+            <section id="tab-schedule" class="tab-panel space-y-4">
+                <!-- High-Contrast Executive Briefing Card -->
+                <div class="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border border-slate-700/80 rounded-2xl p-4 shadow-lg space-y-3.5">
                     <div class="flex items-center justify-between gap-2">
-                        <span id="lblHeroWeekBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                        <span id="lblHeroWeekBadge" class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-indigo-500/20 text-indigo-200 border border-indigo-400/30">
                             11월 3주차 (11/16 월 ~ 11/20 금)
                         </span>
-                        <span class="text-[11px] text-emerald-400 font-semibold">KOSPI · 미국ETF 집중</span>
+                        <span id="lblHeroEventCountBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                            🔥 주요 일정 7건
+                        </span>
                     </div>
 
-                    <h2 id="lblHeroHeadline" class="text-sm font-bold text-white leading-snug">
-                        미 소매판매(11/17)·엔비디아 실적·FOMC 의사록(11/19) 집중 주간
-                    </h2>
+                    <!-- Prominent Headline with Accent Bar -->
+                    <div class="border-l-4 border-blue-500 pl-3 py-0.5">
+                        <div class="text-[11px] font-bold text-blue-400 mb-0.5">이번 주 핵심 헤드라인</div>
+                        <h2 id="lblHeroHeadline" class="text-[16px] font-extrabold text-white leading-snug tracking-tight">
+                            미 소매판매(11/17)·엔비디아 실적·FOMC 의사록(11/19) 집중 주간
+                        </h2>
+                    </div>
 
-                    <p id="lblHeroSummary" class="text-xs text-slate-300 leading-relaxed">
-                        미 10년물 국채금리 <strong class="text-white">4.7%~4.8%</strong> 구간에서 채권 도피성 머니무브가 둔화되고 있으며(<a href="https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">삼성증권 주간 전략</a>), 콜레트 크레스 임시 CEO 체제로 전환한 엔비디아 실적 발표(<a href="https://www.koreajoongangdaily.com/business/kospi-opens-higher-after-nvidia-leadership-change/12971349" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">Korea JoongAng Daily</a>)와 10월 FOMC 의사록(<a href="https://fedratecalc.com/fomc-minutes-release-schedule/" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">FedRateCalc</a>)이 주간 승부처입니다.
-                    </p>
+                    <!-- Macro Summary Box -->
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3">
+                        <div class="text-[11px] font-bold text-slate-400 mb-1">📌 주간 글로벌 매크로 요약</div>
+                        <p id="lblHeroSummary" class="text-[13px] text-slate-100 leading-relaxed">
+                            미 10년물 국채금리 <strong class="text-white">4.7%~4.8%</strong> 구간에서 채권 도피성 머니무브가 둔화되고 있으며(<a href="https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">삼성증권 주간 전략</a>), 콜레트 크레스 임시 CEO 체제로 전환한 엔비디아 실적 발표(<a href="https://www.koreajoongangdaily.com/business/kospi-opens-higher-after-nvidia-leadership-change/12971349" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">Korea JoongAng Daily</a>)와 10월 FOMC 의사록(<a href="https://fedratecalc.com/fomc-minutes-release-schedule/" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">FedRateCalc</a>)이 주간 승부처입니다.
+                        </p>
+                    </div>
 
-                    <!-- Collapsible Quick Strategy Pills -->
-                    <div class="grid grid-cols-1 gap-2 pt-1 text-xs">
-                        <div class="bg-slate-950/80 border border-slate-800/90 rounded-xl p-2.5 flex items-start gap-2">
-                            <span class="text-emerald-400 font-bold shrink-0">🇰🇷 KOSPI</span>
-                            <span id="lblHeroKospiSummary" class="text-slate-300">신용잔고 7월 저점 하회로 매물 소화 완료(<a href="https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">삼성증권</a>). 반도체 가이던스 확인 전까지 로봇·바이오 순환매 대응.</span>
+                    <!-- High-Visibility Portfolio Action Cards -->
+                    <div class="grid grid-cols-1 gap-2.5">
+                        <div class="bg-emerald-950/25 border border-emerald-500/30 border-l-4 border-l-emerald-400 rounded-xl p-3 space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-extrabold text-emerald-300">🇰🇷 국내주식 (KOSPI) 대응 전략</span>
+                                <span class="text-[10px] font-semibold text-emerald-400/80">핵심 체크</span>
+                            </div>
+                            <p id="lblHeroKospiSummary" class="text-[13px] text-slate-100 font-medium leading-relaxed">
+                                신용잔고 7월 저점 하회로 매물 소화 완료(<a href="https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">삼성증권</a>). 반도체 가이던스 확인 전까지 로봇·바이오 순환매 대응.
+                            </p>
                         </div>
-                        <div class="bg-slate-950/80 border border-slate-800/90 rounded-xl p-2.5 flex items-start gap-2">
-                            <span class="text-blue-400 font-bold shrink-0">🇺🇸 미ETF</span>
-                            <span id="lblHeroUsEtfSummary" class="text-slate-300">환율 1,336.7원(<a href="https://english.mofe.go.kr/" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">기재부</a>) 및 한은 11/25 인상 가능성(<a href="https://www.koreatimes.co.kr/economy/20261029/feds-hawkish-hold-strengthens-case-for-boks-hike-in-november" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">Korea Times</a>) 감안, 나스닥100·S&P500 분할 접근.</span>
+
+                        <div class="bg-sky-950/25 border border-sky-500/30 border-l-4 border-l-sky-400 rounded-xl p-3 space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-extrabold text-sky-300">🇺🇸 미국 ETF (환노출·섹터) 대응 전략</span>
+                                <span class="text-[10px] font-semibold text-sky-400/80">핵심 체크</span>
+                            </div>
+                            <p id="lblHeroUsEtfSummary" class="text-[13px] text-slate-100 font-medium leading-relaxed">
+                                환율 1,336.7원(<a href="https://english.mofe.go.kr/" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">기재부</a>) 및 한은 11/25 인상 가능성(<a href="https://www.koreatimes.co.kr/economy/20261029/feds-hawkish-hold-strengthens-case-for-boks-hike-in-november" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">Korea Times</a>) 감안, 나스닥100·S&P500 분할 접근.
+                            </p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Sticky Filter Pill Bar -->
-                <div class="flex items-center justify-between gap-2 bg-slate-900 border border-slate-800 rounded-xl p-2.5">
-                    <div class="flex items-center gap-1 overflow-x-auto no-scrollbar">
-                        <button data-country="ALL" class="country-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-600 text-white shrink-0">전체 (7)</button>
-                        <button data-country="US" class="country-filter-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 shrink-0">🇺🇸 미국</button>
-                        <button data-country="KR" class="country-filter-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 shrink-0">🇰🇷 한국/글로벌</button>
+                <div class="flex items-center justify-between gap-2 bg-slate-900 border border-slate-700/80 rounded-xl p-2.5">
+                    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                        <button data-country="ALL" class="country-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white shrink-0">전체 (7)</button>
+                        <button data-country="US" class="country-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 shrink-0">🇺🇸 미국</button>
+                        <button data-country="KR" class="country-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 shrink-0">🇰🇷 한국/글로벌</button>
                     </div>
-                    <label class="flex items-center gap-1.5 text-xs text-amber-300 font-semibold cursor-pointer select-none shrink-0">
+                    <label class="flex items-center gap-1.5 text-xs text-amber-300 font-bold cursor-pointer select-none shrink-0">
                         <input type="checkbox" id="chkHighImportanceOnly" class="rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-0">
-                        <span>★★★ 핵심 빅 이벤트만 보기</span>
+                        <span>★★★ 빅이벤트만</span>
                     </label>
                 </div>
 
                 <!-- Schedule Cards -->
-                <div id="scheduleListContainer" class="space-y-2.5"></div>
+                <div id="scheduleListContainer" class="space-y-3"></div>
             </section>
 
             <!-- ========================================== -->
@@ -299,19 +268,19 @@
             <!-- ========================================== -->
             <section id="tab-scenario" class="tab-panel hidden space-y-3.5">
                 <!-- Portfolio Weight & FX Card -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+                <div class="bg-slate-900 border border-slate-700/80 rounded-2xl p-4 space-y-3">
                     <div class="flex items-center justify-between gap-2">
-                        <h2 class="text-xs font-bold text-white">내 자산 비중 & 환노출 설정</h2>
+                        <h2 class="text-xs font-extrabold text-white">⚖️ 내 자산 비중 & 환노출 설정</h2>
                         <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-[11px]">
-                            <button id="btnFxUnhedged" class="px-2 py-1 rounded bg-blue-600 text-white font-semibold">환노출형 (기본)</button>
-                            <button id="btnFxHedged" class="px-2 py-1 rounded text-slate-400 font-medium">환헤지형 (H)</button>
+                            <button id="btnFxUnhedged" class="px-2.5 py-1 rounded bg-blue-600 text-white font-bold">환노출형 (기본)</button>
+                            <button id="btnFxHedged" class="px-2.5 py-1 rounded text-slate-400 font-medium">환헤지형 (H)</button>
                         </div>
                     </div>
 
                     <div class="space-y-1.5">
-                        <div class="flex justify-between text-xs font-bold">
+                        <div class="flex justify-between text-[13px] font-extrabold">
                             <span class="text-emerald-400">🇰🇷 국내주식: <span id="lblKrWeight">55</span>%</span>
-                            <span class="text-blue-400">🇺🇸 미국 ETF: <span id="lblUsWeight">45</span>%</span>
+                            <span class="text-sky-400">🇺🇸 미국 ETF: <span id="lblUsWeight">45</span>%</span>
                         </div>
                         <input type="range" id="sliderKrWeight" min="10" max="90" step="5" value="55" class="w-full accent-blue-500 cursor-pointer">
                     </div>
@@ -319,32 +288,32 @@
 
                 <!-- Horizontal Swipe Event Selector Pills (Mobile friendly) -->
                 <div class="space-y-1.5">
-                    <div class="text-xs font-semibold text-slate-400 px-0.5">분석할 이벤트 선택 (좌우 스와이프)</div>
+                    <div class="text-xs font-bold text-slate-300 px-0.5">분석할 이벤트 선택 (좌우 스와이프)</div>
                     <div id="scenarioEventSelector" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 snap-x"></div>
                 </div>
 
                 <!-- Scenario A vs B Toggle & Impact Output -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-3.5">
-                    <div class="space-y-2 border-b border-slate-800 pb-3">
-                        <span id="scenEventTimeBadge" class="text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300"></span>
-                        <h3 id="scenEventTitle" class="text-sm font-bold text-white leading-snug"></h3>
+                <div class="bg-slate-900 border border-slate-700/80 rounded-2xl p-4 space-y-3.5">
+                    <div class="space-y-2.5 border-b border-slate-800 pb-3.5">
+                        <span id="scenEventTimeBadge" class="inline-block text-xs font-extrabold px-2.5 py-0.5 rounded-md bg-blue-500/20 text-blue-200 border border-blue-500/30"></span>
+                        <h3 id="scenEventTitle" class="text-[16px] font-extrabold text-white leading-snug"></h3>
 
-                        <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
-                            <button id="btnScenarioBeat" class="py-2 px-2 rounded-lg bg-rose-600 text-white font-bold transition text-center">
-                                시나리오 A: 예상 상회/매파
+                        <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800 text-xs">
+                            <button id="btnScenarioBeat" class="py-2.5 px-2 rounded-lg bg-rose-600 text-white font-extrabold transition text-center shadow">
+                                ▲ 시나리오 A: 예상 상회·매파
                             </button>
-                            <button id="btnScenarioMiss" class="py-2 px-2 rounded-lg text-slate-400 font-medium transition text-center">
-                                시나리오 B: 예상 하회/비둘기
+                            <button id="btnScenarioMiss" class="py-2.5 px-2 rounded-lg text-slate-400 font-semibold transition text-center">
+                                ▼ 시나리오 B: 예상 하회·비둘기
                             </button>
                         </div>
                     </div>
 
                     <!-- Dynamic Scenario Content -->
-                    <div id="scenarioDetailBody" class="space-y-2.5 text-xs"></div>
+                    <div id="scenarioDetailBody" class="space-y-3 text-xs"></div>
 
                     <!-- Sensitivity Bar Chart -->
-                    <div class="pt-2 border-t border-slate-800">
-                        <h4 class="text-[11px] font-semibold text-slate-400 mb-1.5">자산군별 예상 민감도 (-3 ~ +3)</h4>
+                    <div class="pt-3 border-t border-slate-800">
+                        <h4 class="text-xs font-bold text-slate-300 mb-2">📊 자산군별 예상 민감도 (-3 ~ +3)</h4>
                         <div class="relative h-48">
                             <canvas id="scenarioImpactChart"></canvas>
                         </div>
@@ -825,11 +794,50 @@ npx cap open android`
         }
 
         // =====================================================================
-        // 5. 탭 1: 주간 일정표 카드 렌더링 (모바일 카드 레이아웃)
+        // 5. 탭 1: 상단 이벤트 바로가기 바 & 주간 일정표 카드 렌더링
         // =====================================================================
+        function renderQuickEventTimeline() {
+            const bar = document.getElementById('quickEventTimeline');
+            if (!bar) return;
+
+            bar.innerHTML = `<span class="text-[10px] font-extrabold text-amber-300 shrink-0 px-1.5 py-1 rounded bg-amber-500/15 border border-amber-500/30">⚡ 핵심일정</span>` +
+                WEEKLY_EVENTS.map(ev => {
+                    const isTop = ev.importance === 3;
+                    const pillClass = isTop
+                        ? 'bg-slate-800/95 hover:bg-slate-700 text-white border-amber-500/40'
+                        : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-slate-700';
+                    return `
+                    <button type="button" data-scroll-ev="${ev.id}" class="quick-jump-pill snap-start shrink-0 px-2.5 py-1 rounded-lg border text-[11px] font-bold transition flex items-center gap-1 ${pillClass}">
+                        <span>${ev.shortName || ev.title}</span>
+                        ${isTop ? '<span class="text-amber-400 text-[10px]">★</span>' : ''}
+                    </button>`;
+                }).join('');
+
+            bar.querySelectorAll('.quick-jump-pill').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetId = btn.getAttribute('data-scroll-ev');
+                    switchTab('tab-schedule');
+                    setTimeout(() => {
+                        const cardEl = document.getElementById(`schedule-card-${targetId}`);
+                        if (cardEl) {
+                            cardEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            cardEl.classList.add('ring-2', 'ring-blue-400');
+                            setTimeout(() => cardEl.classList.remove('ring-2', 'ring-blue-400'), 1400);
+                        }
+                    }, 60);
+                });
+            });
+        }
+
         function renderScheduleList() {
+            renderQuickEventTimeline();
             const container = document.getElementById('scheduleListContainer');
             if (!container) return;
+
+            const heroCountBadge = document.getElementById('lblHeroEventCountBadge');
+            if (heroCountBadge) {
+                heroCountBadge.textContent = `🔥 주요 일정 ${WEEKLY_EVENTS.length}건`;
+            }
 
             const filtered = WEEKLY_EVENTS.filter(ev => {
                 const matchCountry = currentCountryFilter === 'ALL' || ev.country === currentCountryFilter;
@@ -843,57 +851,96 @@ npx cap open android`
             }
 
             container.innerHTML = filtered.map(ev => {
+                const isBigEvent = ev.importance === 3;
                 const stars = '★'.repeat(ev.importance);
-                const starColor = ev.importance === 3
-                    ? 'text-amber-300 bg-amber-500/15 border-amber-500/30'
-                    : 'text-slate-300 bg-slate-800 border-slate-700';
+                const cardAccent = isBigEvent
+                    ? 'border-l-4 border-l-amber-400 border-slate-700/90'
+                    : 'border-l-4 border-l-blue-400 border-slate-800';
+                const starBadge = isBigEvent
+                    ? `<span class="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-400/40 shrink-0">🔥 빅이벤트 ${stars}</span>`
+                    : `<span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700 shrink-0">중요 ${stars}</span>`;
+
+                const beatSummary = ev.scenarios?.beat?.headline || '';
+                const missSummary = ev.scenarios?.miss?.headline || '';
 
                 return `
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-2.5 shadow-sm">
-                    <div class="flex items-center justify-between gap-1.5">
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-800 text-blue-300 border border-slate-700">${ev.dayLabel}</span>
-                            <span class="text-[11px] font-semibold text-slate-300">${ev.countryBadge}</span>
+                <article id="schedule-card-${ev.id}" class="bg-slate-900 border ${cardAccent} rounded-2xl p-4 space-y-3 shadow-md transition">
+                    <!-- Date/Time & Importance Header -->
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <span class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-200 border border-blue-500/30 shrink-0">
+                                🗓️ ${ev.dayLabel}
+                            </span>
+                            <span class="text-xs font-bold text-slate-200 truncate">${ev.countryBadge}</span>
                         </div>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded border ${starColor}">중요 ${stars}</span>
+                        ${starBadge}
                     </div>
 
-                    <div>
-                        <h3 class="text-sm font-bold text-white leading-snug">${ev.title}</h3>
-                        <p class="text-xs text-slate-300 mt-1 leading-relaxed">${ev.ibForecast}</p>
+                    <!-- Event Title -->
+                    <h3 class="text-[15px] font-extrabold text-white leading-snug tracking-tight">
+                        ${ev.title}
+                    </h3>
+
+                    <!-- 2-Column Metric Comparison: Previous vs Consensus -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5">
+                            <div class="text-[11px] font-semibold text-slate-400">이전 발표치</div>
+                            <div class="text-[13px] font-extrabold text-slate-100 mt-0.5 leading-snug">${ev.previous}</div>
+                        </div>
+                        <div class="bg-emerald-950/30 border border-emerald-500/35 rounded-xl p-2.5">
+                            <div class="text-[11px] font-bold text-emerald-400">시장 예상치 (컨센서스)</div>
+                            <div class="text-[13px] font-extrabold text-emerald-200 mt-0.5 leading-snug">${ev.consensus}</div>
+                        </div>
                     </div>
 
-                    <div class="bg-slate-950/85 border border-slate-800/80 rounded-xl p-2.5 space-y-1.5 text-xs">
-                        <div class="flex justify-between gap-2">
-                            <span class="text-slate-400 shrink-0">이전 수치</span>
-                            <span class="font-semibold text-slate-200 text-right">${ev.previous}</span>
+                    <!-- IB Forecast & Watchpoint Callouts -->
+                    <div class="space-y-2">
+                        <div class="bg-slate-950/70 border border-slate-800/90 rounded-xl p-2.5">
+                            <div class="text-[11px] font-extrabold text-sky-300 mb-0.5">🏦 주요 IB 전망 및 배경</div>
+                            <p class="text-[12.5px] text-slate-200 leading-relaxed">${ev.ibForecast}</p>
                         </div>
-                        <div class="flex justify-between gap-2 border-t border-slate-800/80 pt-1.5">
-                            <span class="text-slate-400 shrink-0">컨센서스</span>
-                            <span class="font-semibold text-emerald-300 text-right">${ev.consensus}</span>
+
+                        <div class="bg-amber-500/10 border border-amber-500/25 rounded-xl px-3 py-2">
+                            <span class="text-[11px] font-extrabold text-amber-300">🎯 핵심 관전 포인트: </span>
+                            <span class="text-[12px] font-medium text-amber-100 leading-relaxed">${ev.watchPoint}</span>
                         </div>
                     </div>
 
-                    <div class="text-[11px] text-slate-400 leading-relaxed">
-                        💡 <strong class="text-slate-200">관전 포인트:</strong> ${ev.watchPoint}
-                    </div>
-
-                    <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-800/70">
-                        <div class="flex items-center gap-2 text-[11px]">
-                            <a href="${ev.sourceUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline font-medium">${ev.sourceTitle}</a>
-                            <span class="text-slate-600">·</span>
-                            <a href="${ev.secondSourceUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline font-medium">${ev.secondSourceTitle}</a>
-                        </div>
-                        <button data-jump-event="${ev.id}" class="btn-jump-scenario px-2.5 py-1 rounded-lg bg-blue-600/20 border border-blue-500/40 text-blue-300 text-[11px] font-bold active:bg-blue-600/30">
-                            영향 분석 →
+                    <!-- Inline Scenario A vs B Quick Preview (Tappable) -->
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-2.5 space-y-1.5">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">시나리오별 핵심 요약 (터치 시 상세 이동)</div>
+                        <button type="button" data-jump-event="${ev.id}" data-jump-scen="beat" class="btn-jump-scenario w-full text-left flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-rose-950/30 hover:bg-rose-950/50 border border-rose-500/25 transition">
+                            <span class="text-[11px] font-extrabold text-rose-400 shrink-0">▲ 상회·매파</span>
+                            <span class="text-[12px] text-slate-200 font-medium leading-snug line-clamp-1">${beatSummary}</span>
+                        </button>
+                        <button type="button" data-jump-event="${ev.id}" data-jump-scen="miss" class="btn-jump-scenario w-full text-left flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-emerald-950/30 hover:bg-emerald-950/50 border border-emerald-500/25 transition">
+                            <span class="text-[11px] font-extrabold text-emerald-400 shrink-0">▼ 하회·비둘기</span>
+                            <span class="text-[12px] text-slate-200 font-medium leading-snug line-clamp-1">${missSummary}</span>
                         </button>
                     </div>
-                </div>`;
+
+                    <!-- Footer Sources & Scenario Action Button -->
+                    <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-800/80">
+                        <div class="flex items-center gap-2 text-[11px] min-w-0 truncate">
+                            <span class="text-slate-500 shrink-0">출처:</span>
+                            <a href="${ev.sourceUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline font-semibold truncate">${ev.sourceTitle}</a>
+                            <span class="text-slate-600">·</span>
+                            <a href="${ev.secondSourceUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline font-semibold truncate">${ev.secondSourceTitle}</a>
+                        </div>
+                        <button type="button" data-jump-event="${ev.id}" data-jump-scen="beat" class="btn-jump-scenario px-3 py-1.5 rounded-lg bg-blue-600 active:bg-blue-500 text-white text-xs font-extrabold shadow-sm shrink-0">
+                            시나리오 상세 →
+                        </button>
+                    </div>
+                </article>`;
             }).join('');
 
             container.querySelectorAll('.btn-jump-scenario').forEach(btn => {
                 btn.addEventListener('click', () => {
                     selectedEventId = btn.getAttribute('data-jump-event');
+                    const scenType = btn.getAttribute('data-jump-scen');
+                    if (scenType === 'beat' || scenType === 'miss') {
+                        selectedScenarioType = scenType;
+                    }
                     switchTab('tab-scenario');
                 });
             });
@@ -908,8 +955,8 @@ npx cap open android`
             box.innerHTML = WEEKLY_EVENTS.map(ev => {
                 const active = ev.id === selectedEventId;
                 return `
-                <button data-ev-id="${ev.id}" class="scen-ev-btn snap-start shrink-0 px-3 py-2 rounded-xl border text-xs transition flex items-center gap-1.5 ${
-                    active ? 'bg-blue-600 border-blue-500 text-white font-bold shadow' : 'bg-slate-900 border-slate-800 text-slate-300'
+                <button data-ev-id="${ev.id}" class="scen-ev-btn snap-start shrink-0 px-3.5 py-2 rounded-xl border text-xs transition flex items-center gap-1.5 ${
+                    active ? 'bg-blue-600 border-blue-400 text-white font-extrabold shadow-md' : 'bg-slate-900 border-slate-800 text-slate-300 font-semibold'
                 }">
                     <span>${ev.shortName}</span>
                     <span class="text-amber-300 text-[10px]">${'★'.repeat(ev.importance)}</span>
@@ -930,17 +977,17 @@ npx cap open android`
             const scen = ev.scenarios[selectedScenarioType];
             const usWeight = 100 - krStockWeight;
 
-            document.getElementById('scenEventTimeBadge').textContent = `${ev.dayLabel} · ${ev.countryBadge}`;
+            document.getElementById('scenEventTimeBadge').textContent = `🗓️ ${ev.dayLabel} · ${ev.countryBadge}`;
             document.getElementById('scenEventTitle').textContent = ev.title;
 
             const btnBeat = document.getElementById('btnScenarioBeat');
             const btnMiss = document.getElementById('btnScenarioMiss');
             if (selectedScenarioType === 'beat') {
-                btnBeat.className = 'py-2 px-2 rounded-lg bg-rose-600 text-white font-bold transition text-center';
-                btnMiss.className = 'py-2 px-2 rounded-lg text-slate-400 font-medium transition text-center';
+                btnBeat.className = 'py-2.5 px-2 rounded-lg bg-rose-600 text-white font-extrabold transition text-center shadow';
+                btnMiss.className = 'py-2.5 px-2 rounded-lg text-slate-400 font-semibold transition text-center';
             } else {
-                btnBeat.className = 'py-2 px-2 rounded-lg text-slate-400 font-medium transition text-center';
-                btnMiss.className = 'py-2 px-2 rounded-lg bg-emerald-600 text-white font-bold transition text-center';
+                btnBeat.className = 'py-2.5 px-2 rounded-lg text-slate-400 font-semibold transition text-center';
+                btnMiss.className = 'py-2.5 px-2 rounded-lg bg-emerald-600 text-white font-extrabold transition text-center shadow';
             }
 
             const krAvgScore = (scen.scores[0] + scen.scores[1] + scen.scores[2]) / 3;
@@ -948,45 +995,45 @@ npx cap open android`
             const fxAdj = isFxHedged ? 0 : (selectedScenarioType === 'beat' ? 0.25 : -0.15);
             const totalPortfolioScore = ((krAvgScore * (krStockWeight / 100)) + ((usAvgScore + fxAdj) * (usWeight / 100))).toFixed(2);
             const scoreBadgeClass = totalPortfolioScore >= 0
-                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                : 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40'
+                : 'bg-rose-500/20 text-rose-300 border-rose-400/40';
 
             const fxAdvice = isFxHedged
-                ? '현재 <strong>환헤지형(H)</strong> 기준: 원/달러(1,336.7원) 환율 변동을 제거하고 미국 기초지수 등락만 반영합니다.'
-                : '현재 <strong>환노출형</strong> 기준: 원/달러 환율 상승 시 달러 강세분이 미국 ETF 원화 환산 수익률을 방어합니다.';
+                ? '💡 현재 <strong>환헤지형(H)</strong> 선택: 원/달러 환율 변동을 제거하고 미국 기초지수 등락만 반영합니다.'
+                : '💡 현재 <strong>환노출형</strong> 선택: 원/달러 환율 상승 시 달러 강세분이 미국 ETF 원화 환산 수익률을 방어합니다.';
 
             const detailContainer = document.getElementById('scenarioDetailBody');
             detailContainer.innerHTML = `
-                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
+                <div class="bg-slate-950 border border-slate-700/80 rounded-xl p-3.5 space-y-2">
                     <div class="flex items-center justify-between gap-2">
-                        <span class="text-[11px] text-slate-400 font-medium">내 포트폴리오 종합 영향지수</span>
-                        <span class="px-2.5 py-0.5 rounded-md border text-xs font-bold ${scoreBadgeClass}">
+                        <span class="text-xs text-slate-300 font-bold">내 포트폴리오 종합 영향지수</span>
+                        <span class="px-3 py-1 rounded-lg border text-sm font-extrabold ${scoreBadgeClass}">
                             ${totalPortfolioScore > 0 ? '+' + totalPortfolioScore : totalPortfolioScore} / 3.00
                         </span>
                     </div>
-                    <div class="text-xs font-bold text-white leading-snug">${scen.headline}</div>
+                    <div class="text-[14px] font-extrabold text-white leading-snug">${scen.headline}</div>
                 </div>
 
-                <div class="space-y-2">
-                    <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
-                        <div class="text-[11px] font-bold text-amber-400 mb-0.5">1. 금리 및 원/달러 환율 반응</div>
-                        <p class="text-slate-200 text-xs leading-relaxed">${scen.ratesFx}</p>
+                <div class="space-y-2.5">
+                    <div class="bg-slate-950/90 border border-slate-800 border-l-4 border-l-amber-400 rounded-xl p-3">
+                        <div class="text-xs font-extrabold text-amber-300 mb-1">1. 금리 및 원/달러 환율 예상 반응</div>
+                        <p class="text-slate-100 text-[13px] leading-relaxed">${scen.ratesFx}</p>
                     </div>
 
-                    <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
-                        <div class="text-[11px] font-bold text-emerald-400 mb-0.5">2. 국내주식 (KOSPI · 비중 ${krStockWeight}%) 영향</div>
-                        <p class="text-slate-200 text-xs leading-relaxed">${scen.kospiImpact}</p>
+                    <div class="bg-slate-950/90 border border-slate-800 border-l-4 border-l-emerald-400 rounded-xl p-3">
+                        <div class="text-xs font-extrabold text-emerald-300 mb-1">2. 🇰🇷 국내주식 (KOSPI · 비중 ${krStockWeight}%) 영향</div>
+                        <p class="text-slate-100 text-[13px] leading-relaxed">${scen.kospiImpact}</p>
                     </div>
 
-                    <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
-                        <div class="text-[11px] font-bold text-blue-400 mb-0.5">3. 미국 관련 ETF (비중 ${usWeight}% · ${isFxHedged ? '환헤지 H' : '환노출'}) 영향</div>
-                        <p class="text-slate-200 text-xs leading-relaxed mb-1.5">${scen.usEtfImpact}</p>
-                        <div class="text-[11px] text-slate-400 bg-slate-900 px-2 py-1.5 rounded border border-slate-800">${fxAdvice}</div>
+                    <div class="bg-slate-950/90 border border-slate-800 border-l-4 border-l-sky-400 rounded-xl p-3">
+                        <div class="text-xs font-extrabold text-sky-300 mb-1">3. 🇺🇸 미국 관련 ETF (비중 ${usWeight}% · ${isFxHedged ? '환헤지 H' : '환노출'}) 영향</div>
+                        <p class="text-slate-100 text-[13px] leading-relaxed mb-2">${scen.usEtfImpact}</p>
+                        <div class="text-xs text-slate-300 bg-slate-900 px-2.5 py-2 rounded-lg border border-slate-800 leading-relaxed">${fxAdvice}</div>
                     </div>
                 </div>
 
-                <div class="text-[11px] text-slate-400 pt-1">
-                    근거 출처: <a href="${ev.sourceUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">${ev.sourceTitle}</a> · <a href="${ev.secondSourceUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">${ev.secondSourceTitle}</a>
+                <div class="text-xs text-slate-400 pt-1">
+                    근거 출처: <a href="${ev.sourceUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline font-semibold">${ev.sourceTitle}</a> · <a href="${ev.secondSourceUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline font-semibold">${ev.secondSourceTitle}</a>
                 </div>
             `;
 
