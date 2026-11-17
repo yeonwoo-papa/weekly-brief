@@ -1510,20 +1510,97 @@ npx cap open android`
             }
         }
 
+        // KRX (KOSPI / KOSDAQ) 0초 실시간 네이버 금융 JSONP 폴링 (해외 피드의 20분 지연 완전 해소)
+        function fetchNaverRealtimeKrxJsonp() {
+            return new Promise((resolve) => {
+                const cbName = '__naverKrxCb_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+                const script = document.createElement('script');
+                const timer = setTimeout(() => {
+                    cleanup();
+                    resolve(false);
+                }, 3200);
+
+                function cleanup() {
+                    clearTimeout(timer);
+                    try {
+                        delete window[cbName];
+                    } catch (e) {
+                        window[cbName] = undefined;
+                    }
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                }
+
+                window[cbName] = (payload) => {
+                    cleanup();
+                    try {
+                        const datas = payload?.result?.areas?.[0]?.datas || [];
+                        let updated = false;
+                        datas.forEach(d => {
+                            const code = d?.cd; // 'KOSPI' or 'KOSDAQ'
+                            const target = MARKET_QUOTES.find(item => item.key === code);
+                            if (!target || !Number.isFinite(d.nv)) return;
+
+                            const lastNum = d.nv / 100;
+                            const rawCr = Number(d.cr) || 0;
+                            const isNegative = d.cv < 0 || d.rf === '4' || d.rf === '5';
+                            const pctNum = isNegative ? -Math.abs(rawCr) : Math.abs(rawCr);
+
+                            if (target.isLive && Number.isFinite(target.priceNum) && lastNum !== target.priceNum) {
+                                target.flashDir = lastNum > target.priceNum ? 'up' : 'down';
+                                setTimeout(() => {
+                                    target.flashDir = null;
+                                    if (!isMarketEditMode) renderLiveMarketStrip();
+                                }, 900);
+                            }
+                            target.priceNum = lastNum;
+                            target.priceText = formatQuoteNumber(target.key, lastNum);
+                            target.changePct = pctNum;
+                            target.isLive = true;
+                            target.isRealtimeKrx = true;
+                            updated = true;
+                        });
+                        resolve(updated);
+                    } catch (e) {
+                        resolve(false);
+                    }
+                };
+
+                script.referrerPolicy = 'no-referrer';
+                script.charset = 'euc-kr';
+                script.src = `https://polling.finance.naver.com/api/realtime?query=SERVICE_INDEX:KOSPI,KOSDAQ&_callback=${cbName}&_=${Date.now()}`;
+                script.onerror = () => {
+                    cleanup();
+                    resolve(false);
+                };
+                document.head.appendChild(script);
+            });
+        }
+
         async function fetchLiveMarketQuotes() {
+            // 1) KRX 국내 지수(KOSPI, 코스닥) 0초 실시간 JSONP 조회
+            const krxRealtimePromise = fetchNaverRealtimeKrxJsonp();
+
+            // 2) 글로벌 지수·환율·금리 CNBC Direct CORS 실시간 조회
             const symbolsParam = MARKET_QUOTES.map(q => q.cnbcSymbol).join('|');
             const cnbcUrl = `https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=${encodeURIComponent(symbolsParam)}&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1&_=${Date.now()}`;
+            let anyGlobalUpdated = false;
             try {
                 const res = await fetch(cnbcUrl, { cache: 'no-store' });
                 if (res.ok) {
                     const data = await res.json();
                     const quotes = data?.FormattedQuoteResult?.FormattedQuote;
                     if (Array.isArray(quotes)) {
-                        let anyUpdated = false;
                         quotes.forEach(q => {
                             const sym = q?.symbol;
                             const target = MARKET_QUOTES.find(item => item.cnbcSymbol === sym);
                             if (!target) return;
+
+                            // 국내 지수(KOSPI/KOSDAQ)가 네이버 0초 실시간으로 수신 중이면 20분 지연 해외 피드로 덮어쓰지 않음
+                            if (target.isRealtimeKrx && (target.key === 'KOSPI' || target.key === 'KOSDAQ')) {
+                                return;
+                            }
 
                             const lastNum = parseCleanFloat(q.last);
                             const prevNum = parseCleanFloat(q.previous_day_closing);
@@ -1545,24 +1622,24 @@ npx cap open android`
                                     target.changePct = ((lastNum - prevNum) / prevNum) * 100;
                                 }
                                 target.isLive = true;
-                                anyUpdated = true;
+                                anyGlobalUpdated = true;
                             }
                         });
-
-                        if (anyUpdated) {
-                            const clockEl = document.getElementById('lblLiveMarketClock');
-                            if (clockEl) {
-                                const nowStr = new Date().toLocaleTimeString('ko-KR', { hour12: false });
-                                clockEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping shrink-0"></span><span class="truncate">실시간 · ${nowStr}</span>`;
-                            }
-                            if (!isMarketEditMode) {
-                                renderLiveMarketStrip();
-                            }
-                            return;
-                        }
                     }
                 }
             } catch (e) {}
+
+            const krxUpdated = await krxRealtimePromise;
+            if (krxUpdated || anyGlobalUpdated) {
+                const clockEl = document.getElementById('lblLiveMarketClock');
+                if (clockEl) {
+                    const nowStr = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+                    clockEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping shrink-0"></span><span class="truncate">0초 실시간 · ${nowStr}</span>`;
+                }
+                if (!isMarketEditMode) {
+                    renderLiveMarketStrip();
+                }
+            }
         }
 
         async function syncLatestReportFromRepo(isManual = false) {
