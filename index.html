@@ -174,9 +174,18 @@
             </button>
         </div>
 
-        <!-- Live Market Indices Strip (Real-time fetch + fallback) -->
-        <section class="bg-slate-950 border-b border-slate-800/90 px-3.5 py-2 shrink-0">
-            <div id="liveMarketStrip" class="flex items-center gap-2 overflow-x-auto no-scrollbar snap-x snap-mandatory"></div>
+        <!-- Live Market Indices 3x2 Uniform Grid (Real-time 4s streaming + tick flash) -->
+        <section class="bg-slate-950 border-b border-slate-800/90 px-3.5 py-2 shrink-0 space-y-1.5">
+            <div class="flex items-center justify-between text-[10px]">
+                <span class="font-extrabold text-slate-300 flex items-center gap-1">
+                    <span>📊 주요 시장 지수</span>
+                </span>
+                <span id="lblLiveMarketClock" class="text-emerald-400 font-semibold flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span>실시간 수신 대기 중...</span>
+                </span>
+            </div>
+            <div id="liveMarketStrip" class="grid grid-cols-3 gap-1.5"></div>
         </section>
 
         <!-- Dynamic Quick Event Jump Bar (Auto-rendered from WEEKLY_EVENTS) -->
@@ -1160,39 +1169,42 @@ npx cap open android`
         }
 
         // =====================================================================
-        // 8-A. 실시간 주요 시장 지수 (CNBC Direct CORS API 연동: KOSPI, USD/KRW, 나스닥100, S&P500, 미10년물, DXY)
+        // 8-A. 실시간 주요 시장 지수 (CNBC Direct CORS API 연동: 3x2 균일 그리드 & 4초 실시간 스트리밍)
         // =====================================================================
         let MARKET_QUOTES = [
             {
                 key: 'KOSPI',
                 label: '🇰🇷 KOSPI',
                 cnbcSymbol: '.KS11',
-                priceText: '5,005.73',
-                changeText: '-94.77',
-                changePct: -1.86,
-                subText: '전일 5,100.50',
+                priceNum: 5025.05,
+                priceText: '5,025.05',
+                changePct: -1.48,
+                marketOpen: true,
+                flashDir: null,
                 url: 'https://finance.yahoo.com/quote/%5EKS11/',
                 isLive: false
             },
             {
                 key: 'USDKRW',
-                label: '💱 원/달러 환율',
+                label: '💱 원/달러',
                 cnbcSymbol: 'KRW=',
-                priceText: '1,337.80원',
-                changeText: '+2.44',
-                changePct: 0.18,
-                subText: '전일 1,335.36원',
+                priceNum: 1339.00,
+                priceText: '1,339.00원',
+                changePct: 0.27,
+                marketOpen: true,
+                flashDir: null,
                 url: 'https://finance.yahoo.com/quote/KRW%3DX/',
                 isLive: false
             },
             {
                 key: 'NDX',
-                label: '🇺🇸 나스닥 100',
+                label: '🇺🇸 나스닥100',
                 cnbcSymbol: '.NDX',
+                priceNum: 27197.15,
                 priceText: '27,197.15',
-                changeText: '-746.58',
                 changePct: -2.67,
-                subText: '전일 27,943.74',
+                marketOpen: false,
+                flashDir: null,
                 url: 'https://finance.yahoo.com/quote/%5ENDX/',
                 isLive: false
             },
@@ -1200,32 +1212,35 @@ npx cap open android`
                 key: 'SP500',
                 label: '🇺🇸 S&P 500',
                 cnbcSymbol: '.SPX',
+                priceNum: 7416.59,
                 priceText: '7,416.59',
-                changeText: '-145.08',
                 changePct: -1.92,
-                subText: '전일 7,561.67',
+                marketOpen: false,
+                flashDir: null,
                 url: 'https://finance.yahoo.com/quote/%5EGSPC/',
                 isLive: false
             },
             {
                 key: 'US10Y',
-                label: '📈 미 10년물 금리',
+                label: '📈 미10년물',
                 cnbcSymbol: 'US10Y',
-                priceText: '5.13%',
-                changeText: '+0.01',
+                priceNum: 5.129,
+                priceText: '5.129%',
                 changePct: 0.16,
-                subText: '전일 5.12%',
+                marketOpen: true,
+                flashDir: null,
                 url: 'https://finance.yahoo.com/quote/%5ETNX/',
                 isLive: false
             },
             {
                 key: 'DXY',
-                label: '💵 달러 인덱스',
+                label: '💵 달러인덱스',
                 cnbcSymbol: '.DXY',
-                priceText: '103.59',
-                changeText: '+0.04',
-                changePct: 0.04,
-                subText: '전일 103.55',
+                priceNum: 103.601,
+                priceText: '103.601',
+                changePct: 0.05,
+                marketOpen: true,
+                flashDir: null,
                 url: 'https://finance.yahoo.com/quote/DX-Y.NYB/',
                 isLive: false
             }
@@ -1244,7 +1259,10 @@ npx cap open android`
                 return num.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '원';
             }
             if (key === 'US10Y') {
-                return num.toFixed(2) + '%';
+                return num.toFixed(3) + '%';
+            }
+            if (key === 'DXY') {
+                return num.toFixed(3);
             }
             return num.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
@@ -1257,36 +1275,40 @@ npx cap open android`
                 const pct = Number(item.changePct) || 0;
                 const isUp = pct > 0;
                 const isDown = pct < 0;
-                const pctBadgeClass = isUp
-                    ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30'
+                const pctColor = isUp
+                    ? 'text-emerald-300'
                     : isDown
-                        ? 'text-rose-300 bg-rose-500/15 border-rose-500/30'
-                        : 'text-slate-300 bg-slate-800 border-slate-700';
+                        ? 'text-rose-300'
+                        : 'text-slate-300';
                 const pctSign = isUp ? '▲ +' : isDown ? '▼ ' : '';
                 const pctText = `${pctSign}${pct.toFixed(2)}%`;
+
                 const liveDot = item.isLive
-                    ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" title="실시간 연동됨"></span>'
-                    : '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" title="최근 스냅샷"></span>';
+                    ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>'
+                    : '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>';
+
+                let cardBorderBg = 'bg-slate-900 border-slate-800';
+                if (item.flashDir === 'up') {
+                    cardBorderBg = 'bg-emerald-950/60 border-emerald-400 ring-1 ring-emerald-400/60';
+                } else if (item.flashDir === 'down') {
+                    cardBorderBg = 'bg-rose-950/60 border-rose-400 ring-1 ring-rose-400/60';
+                }
 
                 return `
-                <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="snap-start shrink-0 w-36 bg-slate-900 hover:bg-slate-800/90 active:bg-slate-800 border border-slate-800 rounded-xl p-2.5 transition block">
-                    <div class="flex items-center justify-between gap-1">
-                        <span class="text-[11px] font-bold text-slate-300 truncate flex items-center gap-1">${liveDot}${item.label}</span>
-                        <span class="text-[9px] text-slate-500 shrink-0">${item.isLive ? 'LIVE' : '스냅샷'}</span>
+                <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="h-[66px] ${cardBorderBg} hover:bg-slate-800/90 active:bg-slate-800 border rounded-xl px-2.5 py-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden">
+                    <div class="flex items-center justify-between gap-1 w-full overflow-hidden">
+                        <span class="text-[10.5px] font-bold text-slate-300 whitespace-nowrap truncate flex items-center gap-1">${liveDot}${item.label}</span>
                     </div>
-                    <div class="text-[14px] font-extrabold text-white mt-1 tracking-tight">${item.priceText}</div>
-                    <div class="flex items-center justify-between gap-1 mt-1">
-                        <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded border ${pctBadgeClass}">${pctText}</span>
-                        <span class="text-[10px] text-slate-400 truncate">${item.subText || ''}</span>
+                    <div class="text-[13px] font-extrabold text-white tracking-tight whitespace-nowrap truncate leading-none">${item.priceText}</div>
+                    <div class="flex items-center justify-between gap-1 w-full overflow-hidden">
+                        <span class="text-[10px] font-extrabold whitespace-nowrap truncate ${pctColor}">${pctText}</span>
+                        <span class="text-[9px] text-slate-500 whitespace-nowrap shrink-0">${item.isLive ? 'LIVE' : '대기'}</span>
                     </div>
                 </a>`;
             }).join('');
         }
 
         async function fetchLiveMarketQuotes() {
-            renderLiveMarketStrip();
-
-            // Direct CORS-native single-batch fetch from CNBC real-time quote service (Access-Control-Allow-Origin: *)
             const cnbcUrl = 'https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=.KS11%7CKRW%3D%7C.NDX%7C.SPX%7CUS10Y%7C.DXY&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1&_=' + Date.now();
             try {
                 const res = await fetch(cnbcUrl, { cache: 'no-store' });
@@ -1294,6 +1316,7 @@ npx cap open android`
                     const data = await res.json();
                     const quotes = data?.FormattedQuoteResult?.FormattedQuote;
                     if (Array.isArray(quotes)) {
+                        let anyUpdated = false;
                         quotes.forEach(q => {
                             const sym = q?.symbol;
                             const target = MARKET_QUOTES.find(item => item.cnbcSymbol === sym);
@@ -1304,37 +1327,33 @@ npx cap open android`
                             const pctNum = parseCleanFloat(q.change_pct);
 
                             if (Number.isFinite(lastNum)) {
+                                if (target.isLive && Number.isFinite(target.priceNum) && lastNum !== target.priceNum) {
+                                    target.flashDir = lastNum > target.priceNum ? 'up' : 'down';
+                                    setTimeout(() => {
+                                        target.flashDir = null;
+                                        renderLiveMarketStrip();
+                                    }, 900);
+                                }
+                                target.priceNum = lastNum;
                                 target.priceText = formatQuoteNumber(target.key, lastNum);
                                 if (Number.isFinite(pctNum)) {
                                     target.changePct = pctNum;
                                 } else if (Number.isFinite(prevNum) && prevNum > 0) {
                                     target.changePct = ((lastNum - prevNum) / prevNum) * 100;
                                 }
-                                if (Number.isFinite(prevNum)) {
-                                    target.subText = `전일 ${formatQuoteNumber(target.key, prevNum)}`;
-                                }
                                 target.isLive = true;
+                                anyUpdated = true;
                             }
                         });
-                        renderLiveMarketStrip();
-                        return;
-                    }
-                }
-            } catch (e) {
-                // Fallback to open.er-api.com for USD/KRW if CNBC is unreachable
-            }
 
-            try {
-                const fxRes = await fetch('https://open.er-api.com/v6/latest/USD', { cache: 'no-store' });
-                if (fxRes.ok) {
-                    const fxData = await fxRes.json();
-                    const krw = fxData?.rates?.KRW;
-                    if (Number.isFinite(krw)) {
-                        const fxItem = MARKET_QUOTES.find(q => q.key === 'USDKRW');
-                        if (fxItem && !fxItem.isLive) {
-                            fxItem.priceText = formatQuoteNumber('USDKRW', krw);
-                            fxItem.isLive = true;
+                        if (anyUpdated) {
+                            const clockEl = document.getElementById('lblLiveMarketClock');
+                            if (clockEl) {
+                                const nowStr = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+                                clockEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span><span>실시간 수신 중 · ${nowStr} (4초 주기)</span>`;
+                            }
                             renderLiveMarketStrip();
+                            return;
                         }
                     }
                 }
@@ -1442,7 +1461,7 @@ npx cap open android`
             renderConfigViewer('workflow');
             syncLatestReportFromRepo(false);
             fetchLiveMarketQuotes();
-            setInterval(fetchLiveMarketQuotes, 60000);
+            setInterval(fetchLiveMarketQuotes, 4000);
 
             // Manual refresh button in top sync status bar
             const btnRefreshSync = document.getElementById('btnRefreshSync');
