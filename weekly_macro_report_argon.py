@@ -353,7 +353,7 @@ def fetch_market_quotes_snapshot() -> list[dict]:
 
     for key, label, sym in symbols:
         try:
-            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?interval=1d&range=5d"
+            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?interval=1d&range=1d"
             r = requests.get(url, headers=headers, timeout=8)
             r.raise_for_status()
             meta = r.json()["chart"]["result"][0]["meta"]

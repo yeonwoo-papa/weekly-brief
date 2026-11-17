@@ -1160,74 +1160,86 @@ npx cap open android`
         }
 
         // =====================================================================
-        // 8-A. 실시간 주요 시장 지수 (KOSPI, USD/KRW, 나스닥100, S&P500, 미10년물, DXY)
+        // 8-A. 실시간 주요 시장 지수 (CNBC Direct CORS API 연동: KOSPI, USD/KRW, 나스닥100, S&P500, 미10년물, DXY)
         // =====================================================================
         let MARKET_QUOTES = [
             {
                 key: 'KOSPI',
                 label: '🇰🇷 KOSPI',
-                yahooSymbol: '^KS11',
-                priceText: '5,037.89',
-                changePct: -3.84,
-                subText: '전일 5,239.13',
+                cnbcSymbol: '.KS11',
+                priceText: '5,005.73',
+                changeText: '-94.77',
+                changePct: -1.86,
+                subText: '전일 5,100.50',
                 url: 'https://finance.yahoo.com/quote/%5EKS11/',
                 isLive: false
             },
             {
                 key: 'USDKRW',
                 label: '💱 원/달러 환율',
-                yahooSymbol: 'KRW=X',
-                priceText: '1,336.70원',
-                changePct: 0.11,
-                subText: 'USD/KRW',
+                cnbcSymbol: 'KRW=',
+                priceText: '1,337.80원',
+                changeText: '+2.44',
+                changePct: 0.18,
+                subText: '전일 1,335.36원',
                 url: 'https://finance.yahoo.com/quote/KRW%3DX/',
                 isLive: false
             },
             {
                 key: 'NDX',
                 label: '🇺🇸 나스닥 100',
-                yahooSymbol: '^NDX',
-                priceText: '20,680.00',
-                changePct: 0.45,
-                subText: 'NASDAQ 100',
+                cnbcSymbol: '.NDX',
+                priceText: '27,197.15',
+                changeText: '-746.58',
+                changePct: -2.67,
+                subText: '전일 27,943.74',
                 url: 'https://finance.yahoo.com/quote/%5ENDX/',
                 isLive: false
             },
             {
                 key: 'SP500',
                 label: '🇺🇸 S&P 500',
-                yahooSymbol: '^GSPC',
-                priceText: '5,940.00',
-                changePct: 0.28,
-                subText: 'S&P 500 지수',
+                cnbcSymbol: '.SPX',
+                priceText: '7,416.59',
+                changeText: '-145.08',
+                changePct: -1.92,
+                subText: '전일 7,561.67',
                 url: 'https://finance.yahoo.com/quote/%5EGSPC/',
                 isLive: false
             },
             {
                 key: 'US10Y',
                 label: '📈 미 10년물 금리',
-                yahooSymbol: '^TNX',
-                priceText: '4.42%',
-                changePct: -0.65,
-                subText: 'US 10Y Yield',
+                cnbcSymbol: 'US10Y',
+                priceText: '5.13%',
+                changeText: '+0.01',
+                changePct: 0.16,
+                subText: '전일 5.12%',
                 url: 'https://finance.yahoo.com/quote/%5ETNX/',
                 isLive: false
             },
             {
                 key: 'DXY',
                 label: '💵 달러 인덱스',
-                yahooSymbol: 'DX-Y.NYB',
-                priceText: '106.20',
-                changePct: 0.15,
-                subText: 'DXY Index',
+                cnbcSymbol: '.DXY',
+                priceText: '103.59',
+                changeText: '+0.04',
+                changePct: 0.04,
+                subText: '전일 103.55',
                 url: 'https://finance.yahoo.com/quote/DX-Y.NYB/',
                 isLive: false
             }
         ];
 
+        function parseCleanFloat(str) {
+            if (typeof str === 'number') return str;
+            if (!str) return NaN;
+            return parseFloat(String(str).replace(/[,%원\s+]/g, ''));
+        }
+
         function formatQuoteNumber(key, val) {
-            const num = Number(val);
-            if (!Number.isFinite(num)) return '-';
+            const num = parseCleanFloat(val);
+            if (!Number.isFinite(num)) return String(val || '-');
             if (key === 'USDKRW') {
                 return num.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '원';
             }
@@ -1260,50 +1272,58 @@ npx cap open android`
                 <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="snap-start shrink-0 w-36 bg-slate-900 hover:bg-slate-800/90 active:bg-slate-800 border border-slate-800 rounded-xl p-2.5 transition block">
                     <div class="flex items-center justify-between gap-1">
                         <span class="text-[11px] font-bold text-slate-300 truncate flex items-center gap-1">${liveDot}${item.label}</span>
+                        <span class="text-[9px] text-slate-500 shrink-0">${item.isLive ? 'LIVE' : '스냅샷'}</span>
                     </div>
                     <div class="text-[14px] font-extrabold text-white mt-1 tracking-tight">${item.priceText}</div>
                     <div class="flex items-center justify-between gap-1 mt-1">
                         <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded border ${pctBadgeClass}">${pctText}</span>
-                        <span class="text-[10px] text-slate-500 truncate">${item.isLive ? '실시간' : '최근'}</span>
+                        <span class="text-[10px] text-slate-400 truncate">${item.subText || ''}</span>
                     </div>
                 </a>`;
             }).join('');
         }
 
-        async function fetchSingleYahooQuote(symbol) {
-            const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d&_=${Date.now()}`;
-            const proxies = [
-                `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`,
-                `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
-                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`
-            ];
-
-            for (const proxyUrl of proxies) {
-                try {
-                    const controller = new AbortController();
-                    const timer = setTimeout(() => controller.abort(), 5500);
-                    const res = await fetch(proxyUrl, { signal: controller.signal, cache: 'no-store' });
-                    clearTimeout(timer);
-                    if (!res.ok) continue;
-                    const data = await res.json();
-                    const meta = data?.chart?.result?.[0]?.meta;
-                    if (meta && Number.isFinite(meta.regularMarketPrice)) {
-                        const price = Number(meta.regularMarketPrice);
-                        const prev = Number(meta.chartPreviousClose || meta.previousClose || price);
-                        const changePct = prev ? ((price - prev) / prev) * 100 : 0;
-                        return { price, prev, changePct };
-                    }
-                } catch (e) {
-                    // try next proxy
-                }
-            }
-            return null;
-        }
-
         async function fetchLiveMarketQuotes() {
             renderLiveMarketStrip();
 
-            // 1) Direct CORS-native USD/KRW fallback first for instant FX update
+            // Direct CORS-native single-batch fetch from CNBC real-time quote service (Access-Control-Allow-Origin: *)
+            const cnbcUrl = 'https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=.KS11%7CKRW%3D%7C.NDX%7C.SPX%7CUS10Y%7C.DXY&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1&_=' + Date.now();
+            try {
+                const res = await fetch(cnbcUrl, { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    const quotes = data?.FormattedQuoteResult?.FormattedQuote;
+                    if (Array.isArray(quotes)) {
+                        quotes.forEach(q => {
+                            const sym = q?.symbol;
+                            const target = MARKET_QUOTES.find(item => item.cnbcSymbol === sym);
+                            if (!target) return;
+
+                            const lastNum = parseCleanFloat(q.last);
+                            const prevNum = parseCleanFloat(q.previous_day_closing);
+                            const pctNum = parseCleanFloat(q.change_pct);
+
+                            if (Number.isFinite(lastNum)) {
+                                target.priceText = formatQuoteNumber(target.key, lastNum);
+                                if (Number.isFinite(pctNum)) {
+                                    target.changePct = pctNum;
+                                } else if (Number.isFinite(prevNum) && prevNum > 0) {
+                                    target.changePct = ((lastNum - prevNum) / prevNum) * 100;
+                                }
+                                if (Number.isFinite(prevNum)) {
+                                    target.subText = `전일 ${formatQuoteNumber(target.key, prevNum)}`;
+                                }
+                                target.isLive = true;
+                            }
+                        });
+                        renderLiveMarketStrip();
+                        return;
+                    }
+                }
+            } catch (e) {
+                // Fallback to open.er-api.com for USD/KRW if CNBC is unreachable
+            }
+
             try {
                 const fxRes = await fetch('https://open.er-api.com/v6/latest/USD', { cache: 'no-store' });
                 if (fxRes.ok) {
@@ -1319,20 +1339,6 @@ npx cap open android`
                     }
                 }
             } catch (e) {}
-
-            // 2) Fetch all 6 symbols from Yahoo Finance chart API in parallel
-            await Promise.allSettled(
-                MARKET_QUOTES.map(async (item) => {
-                    const quote = await fetchSingleYahooQuote(item.yahooSymbol);
-                    if (quote) {
-                        item.priceText = formatQuoteNumber(item.key, quote.price);
-                        item.changePct = quote.changePct;
-                        item.subText = `전일 ${formatQuoteNumber(item.key, quote.prev)}`;
-                        item.isLive = true;
-                        renderLiveMarketStrip();
-                    }
-                })
-            );
         }
 
         async function syncLatestReportFromRepo(isManual = false) {
