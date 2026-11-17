@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="./manifest.json">
     <title>MacroBrief Pro — 스마트폰 최적화 주간 금융일정 & KOSPI·미국ETF 앱</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -400,14 +401,14 @@
             </section>
 
             <!-- ========================================== -->
-            <!-- TAB 3: Gemini 4 Argon 리포트 & PDF 저장 -->
+            <!-- TAB 3: AI 주간 리포트 & PDF 저장 -->
             <!-- ========================================== -->
             <section id="tab-ai-pdf" class="tab-panel hidden space-y-3.5">
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 no-print space-y-3">
                     <div class="flex items-center justify-between gap-2">
                         <div>
-                            <h2 class="text-sm font-bold text-white">Argon 4.0 리포트 & PDF 출력</h2>
-                            <p class="text-[11px] text-slate-400">내장 검증 리포트를 PDF로 저장하거나 실시간 갱신합니다.</p>
+                            <h2 class="text-sm font-bold text-white">AI 주간 리포트 & PDF 출력</h2>
+                            <p class="text-[11px] text-slate-400">동기화된 리포트를 PDF로 저장하거나 실시간 갱신합니다.</p>
                         </div>
                         <button id="btnPrintPdfReportTab" class="px-3 py-2 rounded-xl bg-emerald-600 active:bg-emerald-500 text-white text-xs font-bold shadow shrink-0">
                             🖨️ 현재 보고서 PDF 저장 / 인쇄
@@ -418,15 +419,18 @@
                         <div>
                             <label class="block text-[11px] text-slate-400 mb-1">모델 선택</label>
                             <select id="selGeminiModel" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white text-xs">
-                                <option value="gemini-4-argon" selected>gemini-4-argon</option>
-                                <option value="gemini-4-carbon">gemini-4-carbon</option>
+                                <option value="gemini-3.8-flash" selected>gemini-3.8-flash (기본)</option>
+                                <option value="gemini-3.6-flash">gemini-3.6-flash</option>
+                                <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option>
+                                <option value="gemini-4-argon">gemini-4-argon (유료 티어)</option>
+                                <option value="gemini-4-carbon">gemini-4-carbon (유료 티어)</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-[11px] text-slate-400 mb-1">Thinking Level</label>
                             <select id="selThinkingLevel" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white text-xs">
-                                <option value="HIGH" selected>HIGH (교차검증)</option>
-                                <option value="MEDIUM">MEDIUM</option>
+                                <option value="MEDIUM" selected>MEDIUM (권장)</option>
+                                <option value="HIGH">HIGH (교차검증)</option>
                                 <option value="LOW">LOW</option>
                             </select>
                         </div>
@@ -442,7 +446,7 @@
                             기본 리포트 복원
                         </button>
                         <button id="btnRunArgonLive" class="flex-1 py-1.5 px-3 rounded-lg bg-blue-600 active:bg-blue-500 text-white text-xs font-bold shadow text-center">
-                            ⚡ Argon 실시간 리포트 새로 생성
+                            ⚡ AI 실시간 리포트 새로 생성
                         </button>
                     </div>
                     <div id="lblApiStatus" class="text-[11px] text-slate-400">상태: 2026년 11월 3주차 검증 리포트 로드됨</div>
@@ -454,8 +458,8 @@
                         <div class="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Weekly Macro & Portfolio Strategy Report</div>
                         <h1 class="text-base font-bold text-white">주간 주요국 금융일정 및 KOSPI·미국ETF 영향 보고서</h1>
                         <div class="flex flex-wrap items-center justify-between text-[11px] text-slate-400 pt-1">
-                            <span>대상: 2026.11.16(월) ~ 11.20(금)</span>
-                            <span>엔진: <strong id="lblReportModelBadge" class="text-slate-200">gemini-4-argon (HIGH)</strong></span>
+                            <span id="lblReportWeekRange">대상: 2026.11.16(월) ~ 11.20(금)</span>
+                            <span>엔진: <strong id="lblReportModelBadge" class="text-slate-200">gemini-3.8-flash (MEDIUM)</strong></span>
                         </div>
                     </div>
 
@@ -785,18 +789,21 @@
         ];
 
         // =====================================================================
-        // 2. 플레이스토어 & GitHub Actions 설정 파일 템플릿
+        // 2. 플레이스토어 & GitHub Actions 설정 파일 템플릿 (.github/workflows/weekly_report.yml 동기화)
         // =====================================================================
         const CONFIG_TEMPLATES = {
             workflow: {
-                desc: 'PC를 켜두지 않아도 매주 월요일 오전 8시(KST)에 GitHub 무료 서버가 켜져서 Gemini 4 Argon으로 리포트와 PDF를 생성하고 텔레그램으로 전송합니다.',
-                code: `name: Weekly Macro Report (Gemini 4 Argon)
+                desc: 'PC를 켜두지 않아도 매주 월요일 오전 8시(KST)에 GitHub Actions 서버가 깨어나 PDF 리포트를 텔레그램으로 전송하고, latest_report.json을 저장소에 자동 커밋·푸시하여 모바일 웹앱을 동기화합니다.',
+                code: `name: Weekly Macro Report & Web Sync
 
 on:
   schedule:
     # 매주 월요일 오전 08:00 KST (UTC 기준 일요일 23:00)
     - cron: '0 23 * * 0'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build-and-send-report:
@@ -812,17 +819,27 @@ jobs:
 
       - name: Install Dependencies & Chromium
         run: |
-          pip install --upgrade "google-genai>=2.34.0" markdown playwright requests python-dotenv schedule
+          pip install --upgrade -r requirements.txt
           playwright install --with-deps chromium
 
-      - name: Generate Weekly PDF Report & Send via Telegram
+      - name: Generate Weekly PDF Report, Web JSON & Send Telegram
         env:
           GEMINI_API_KEY: \${{ secrets.GEMINI_API_KEY }}
           TELEGRAM_BOT_TOKEN: \${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: \${{ secrets.TELEGRAM_CHAT_ID }}
           TZ: 'Asia/Seoul'
         run: |
-          python weekly_macro_report_argon.py`
+          python -u weekly_macro_report_argon.py
+
+      - name: Commit & Push latest_report.json for Mobile Web Sync
+        run: |
+          if [ -f latest_report.json ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add latest_report.json
+            git diff --staged --quiet || git commit -m "chore: update weekly macro report JSON [skip ci]"
+            git push
+          fi`
             },
             manifest: {
                 desc: '스마트폰 홈 화면 설치 및 구글 플레이스토어(TWA) 패키징을 위한 manifest.json 설정입니다.',
@@ -830,7 +847,7 @@ jobs:
   "name": "MacroBrief Pro - 주간 금융일정 & 포트폴리오 리포트",
   "short_name": "MacroBrief",
   "description": "매주 월요일 오전 8시 한국·미국 주요 금융일정 및 KOSPI·미국 ETF 영향 분석 앱",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0b1120",
   "theme_color": "#0f172a",
@@ -857,8 +874,8 @@ jobs:
                 code: `# 1. Node.js 환경에서 Google Bubblewrap CLI 설치
 npm install -g @bubblewrap/cli
 
-# 2. 프로젝트 초기화 (호스팅한 manifest.json 주소 입력)
-bubblewrap init --manifest="https://내도메인주소/manifest.json"
+# 2. 프로젝트 초기화 (GitHub Pages에 배포된 manifest.json 주소 입력)
+bubblewrap init --manifest="https://yeonwoo-papa.github.io/weekly-brief/manifest.json"
 
 # 3. 구글 플레이스토어 업로드용 서명된 .aab 및 .apk 생성
 bubblewrap build`
@@ -869,7 +886,7 @@ bubblewrap build`
 npm install @capacitor/core @capacitor/cli @capacitor/android
 npx cap init "MacroBrief Pro" "com.dongtan.macrobrief" --web-dir=dist
 
-mkdir -p dist && cp macro_brief_playstore_app.html dist/index.html
+mkdir -p dist && cp index.html manifest.json latest_report.json dist/
 npx cap add android
 npx cap sync
 npx cap open android`
@@ -898,7 +915,7 @@ npx cap open android`
         }
 
         // =====================================================================
-        // 4. 탭 전환 (하단 네비게이션 바 연동)
+        // 4. 탭 전환 (하단 네비게이션 바 및 와이드 상단 탭바 연동)
         // =====================================================================
         function switchTab(tabId) {
             document.querySelectorAll('.tab-panel').forEach(panel => {
@@ -906,9 +923,16 @@ npx cap open android`
             });
             document.querySelectorAll('.nav-tab-btn').forEach(btn => {
                 const active = btn.getAttribute('data-tab') === tabId;
-                btn.className = `nav-tab-btn flex flex-col items-center py-1 rounded-xl text-[11px] transition ${
-                    active ? 'font-bold text-blue-400 bg-blue-500/10' : 'font-medium text-slate-400 hover:text-slate-200'
-                }`;
+                const isWideTop = Boolean(btn.closest('#wideTopTabBar'));
+                if (isWideTop) {
+                    btn.className = `nav-tab-btn py-2 px-3 rounded-lg text-xs font-semibold transition ${
+                        active ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
+                    }`;
+                } else {
+                    btn.className = `nav-tab-btn flex flex-col items-center py-1 rounded-xl text-[11px] transition ${
+                        active ? 'font-bold text-blue-400 bg-blue-500/10' : 'font-medium text-slate-400 hover:text-slate-200'
+                    }`;
+                }
             });
 
             const viewport = document.getElementById('appScrollViewport');
@@ -1136,8 +1160,10 @@ npx cap open android`
         }
 
         // =====================================================================
-        // 7. 탭 3: 인쇄용 상세 보고서 렌더링 & 실시간 Gemini 4 Argon 호출
+        // 7. 탭 3: 인쇄용 상세 보고서 렌더링 & 실시간 Gemini API 호출
         // =====================================================================
+        let syncedReportMeta = null;
+
         function renderDefaultPrintableReport() {
             const container = document.getElementById('reportRenderedContent');
             if (!container) return;
@@ -1164,13 +1190,24 @@ npx cap open android`
                 </div>
             `).join('');
 
+            const summaryListHtml = syncedReportMeta
+                ? `
+                    <li><strong>주간 핵심 헤드라인:</strong> ${syncedReportMeta.heroHeadline}</li>
+                    <li><strong>글로벌 매크로 요약:</strong> ${syncedReportMeta.heroSummary}</li>
+                    <li><strong>국내주식 (KOSPI) 전략:</strong> ${syncedReportMeta.kospiSummary}</li>
+                    <li><strong>미국 관련 ETF 전략:</strong> ${syncedReportMeta.usEtfSummary}</li>
+                `
+                : `
+                    <li><strong>장기금리 임계점 도달:</strong> 미 10년물 국채금리 <strong>4.7%~4.8%</strong> 구간에서 채권 도피성 자금 이동이 진정되고 있으며, 국내 증시 신용융자 잔고도 7월 저점을 하회해 수급상 매물 부담이 완화된 상태입니다(<a href="https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">삼성증권 주간 투자 전략</a>).</li>
+                    <li><strong>한·미 통화정책 연동 주의:</strong> 미 연준이 10월 기준금리를 <strong>3.75%~4.00%</strong>로 매파적 동결한 가운데 11/19(04:00 KST) 공개되는 FOMC 의사록(<a href="https://fedratecalc.com/fomc-minutes-release-schedule/" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">FedRateCalc</a>)은 차주(11/25) 한국은행 금통위(현 <strong>3.00%</strong>, <a href="https://tradingeconomics.com/south-korea/interest-rate" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">Trading Economics</a>)의 추가 인상 여부에 핵심 변수로 작용합니다(<a href="https://www.koreatimes.co.kr/economy/20261029/feds-hawkish-hold-strengthens-case-for-boks-hike-in-november" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">The Korea Times</a>).</li>
+                    <li><strong>국내주식 & 미국 ETF 대응:</strong> 엔비디아 실적(11/18 새벽)과 앤스로픽 상장(11/19 예정)을 거치며 AI 밸류체인 신뢰 회복 여부를 확인하고, 원/달러 환율 <strong>1,336.7원</strong>(<a href="https://english.mofe.go.kr/" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">기획재정부</a>) 부근에서는 미국 지수 ETF의 환노출/환헤지 비중을 금리 시나리오에 맞춰 조절합니다.</li>
+                `;
+
             container.innerHTML = `
                 <section class="space-y-2">
                     <h2 class="text-sm font-bold text-blue-400 border-l-4 border-blue-500 pl-2">1. 주간 핵심 매크로 진단 및 포트폴리오 요약</h2>
                     <ul class="list-disc pl-4 space-y-1.5 text-slate-200 text-xs">
-                        <li><strong>장기금리 임계점 도달:</strong> 미 10년물 국채금리 <strong>4.7%~4.8%</strong> 구간에서 채권 도피성 자금 이동이 진정되고 있으며, 국내 증시 신용융자 잔고도 7월 저점을 하회해 수급상 매물 부담이 완화된 상태입니다(<a href="https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">삼성증권 주간 투자 전략</a>).</li>
-                        <li><strong>한·미 통화정책 연동 주의:</strong> 미 연준이 10월 기준금리를 <strong>3.75%~4.00%</strong>로 매파적 동결한 가운데 11/19(04:00 KST) 공개되는 FOMC 의사록(<a href="https://fedratecalc.com/fomc-minutes-release-schedule/" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">FedRateCalc</a>)은 차주(11/25) 한국은행 금통위(현 <strong>3.00%</strong>, <a href="https://tradingeconomics.com/south-korea/interest-rate" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">Trading Economics</a>)의 추가 인상 여부에 핵심 변수로 작용합니다(<a href="https://www.koreatimes.co.kr/economy/20261029/feds-hawkish-hold-strengthens-case-for-boks-hike-in-november" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">The Korea Times</a>).</li>
-                        <li><strong>국내주식 & 미국 ETF 대응:</strong> 엔비디아 실적(11/18 새벽)과 앤스로픽 상장(11/19 예정)을 거치며 AI 밸류체인 신뢰 회복 여부를 확인하고, 원/달러 환율 <strong>1,336.7원</strong>(<a href="https://english.mofe.go.kr/" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">기획재정부</a>) 부근에서는 미국 지수 ETF의 환노출/환헤지 비중을 금리 시나리오에 맞춰 조절합니다.</li>
+                        ${summaryListHtml}
                     </ul>
                 </section>
 
@@ -1337,8 +1374,15 @@ npx cap open android`
 
                 WEEKLY_EVENTS = data.events;
                 selectedEventId = WEEKLY_EVENTS[0].id || 'event-1';
+                syncedReportMeta = {
+                    heroHeadline: data.heroHeadline || '',
+                    heroSummary: data.heroSummary || '',
+                    kospiSummary: data.kospiSummary || '',
+                    usEtfSummary: data.usEtfSummary || ''
+                };
 
                 const weekBadge = document.getElementById('lblHeroWeekBadge');
+                const reportWeekRange = document.getElementById('lblReportWeekRange');
                 const headlineEl = document.getElementById('lblHeroHeadline');
                 const summaryEl = document.getElementById('lblHeroSummary');
                 const kospiSummaryEl = document.getElementById('lblHeroKospiSummary');
@@ -1349,6 +1393,9 @@ npx cap open android`
 
                 if (weekBadge && data.weekLabel) {
                     weekBadge.textContent = `${data.weekLabel} (자동 동기화됨)`;
+                }
+                if (reportWeekRange && data.weekLabel) {
+                    reportWeekRange.textContent = `대상: ${data.weekLabel}`;
                 }
                 if (headlineEl && data.heroHeadline) {
                     headlineEl.textContent = data.heroHeadline;

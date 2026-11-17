@@ -1,19 +1,20 @@
 """
-주간 주요국 금융·거시경제 일정 및 시장 영향 리포트 생성기 (Gemini 4 Argon 기반)
+주간 주요국 금융·거시경제 일정 및 시장 영향 리포트 생성기 (MacroBrief Pro)
 --------------------------------------------------------------------------------
-- 실행 주기: 매주 월요일 오전 08:00 (자체 스케줄러 내장 또는 Windows 작업 스케줄러 연동)
-- 사용 모델: gemini-4-argon (Google Search Grounding 및 ThinkingConfig 활성화)
+- 실행 주기: 매주 월요일 오전 08:00 KST (GitHub Actions 크론 스케줄러 또는 --daemon 모드)
+- 사용 모델: 무료 티어 호환 모델 순차 폴백 (gemini-3.8-flash -> gemini-3.6-flash -> gemini-3.5-flash-lite)
 - 주요 기능:
-  1. 한국·미국·주요 선진국(유로존·영국·일본) 주간 금융·경제 일정 웹 검색 조회
+  1. 한국·미국·주요 선진국(유로존·영국·일본) 주간 금융·경제 일정 조회 (1차: Google Search Grounding, 2차: Google News RSS 폴백)
   2. 시장 컨센서스 및 주요 IB(Goldman Sachs, JPMorgan, Morgan Stanley, BofA, Citi 등) 예측치 수집
   3. 국내주식(KOSPI·업종·외국인 수급) 및 미국 관련 ETF(S&P500·나스닥·섹터·환노출/환헤지) 영향 분석
-  4. HTML 및 PDF 리포트 자동 생성 (Playwright Chromium 활용) + 텔레그램 알림/파일 전송 지원
+  4. Markdown / HTML / PDF 리포트 자동 생성 (Playwright Chromium 활용) 및 텔레그램 요약·PDF 전송
+  5. 모바일 웹앱(index.html) 자동 동기화용 latest_report.json 생성 및 검증 로깅
 
 사전 패키지 설치:
-    pip install --upgrade "google-genai>=2.34.0" markdown playwright requests python-dotenv schedule
+    pip install --upgrade -r requirements.txt
     playwright install chromium
 
-환경 변수 설정 (.env 또는 시스템 환경변수):
+환경 변수 설정 (.env 또는 GitHub Actions Secrets):
     GEMINI_API_KEY="발급받은_Google_AI_Studio_API_키"
     TELEGRAM_BOT_TOKEN="텔레그램_봇_토큰"       # (선택) 설정 시 텔레그램으로 요약 및 PDF 전송
     TELEGRAM_CHAT_ID="텔레그램_채팅_ID"         # (선택)
@@ -59,7 +60,7 @@ def get_week_date_range() -> tuple[str, str, str]:
 
 
 def build_prompt(week_range: str) -> str:
-    """Gemini 4 Argon 모델에 전달할 프롬프트를 생성합니다."""
+    """Gemini 모델에 전달할 주간 매크로 리포트 작성 프롬프트를 생성합니다."""
     return f"""
 당신은 글로벌 매크로 전략가이자 자산배분 애널리스트입니다.
 이번 주({week_range})에 발표 예정인 한국, 미국 및 주요 선진국(유로존, 영국, 일본)의 금융·거시경제 이벤트 일정을 웹 검색으로 조회하고,
@@ -100,7 +101,7 @@ def build_prompt(week_range: str) -> str:
 
 
 # =====================================================================
-# 2. Gemini 4 Argon API 호출 (Google Search Grounding 활성화)
+# 2. Gemini API 호출 (Google Search Grounding + RSS 뉴스 폴백 지원)
 # =====================================================================
 
 def fetch_live_macro_rss(max_items: int = 25) -> str:
@@ -128,7 +129,7 @@ def fetch_live_macro_rss(max_items: int = 25) -> str:
     return "\n".join(lines)
 
 def generate_macro_report_markdown(week_range: str) -> str:
-    """Gemini 4 Argon 모델을 호출하여 Google 검색 기반 마크다운 보고서를 생성합니다."""
+    """MODEL_CANDIDATES를 순차 호출하여 Google 검색(또는 RSS 폴백) 기반 마크다운 보고서를 생성합니다."""
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         raise ValueError("GEMINI_API_KEY 환경변수가 설정되어 있지 않습니다.")
@@ -580,7 +581,7 @@ def run_weekly_job() -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Gemini 4 Argon 기반 주간 금융 리포트 자동 생성기")
+    parser = argparse.ArgumentParser(description="Gemini API 기반 주간 금융 리포트 및 웹앱 동기화 JSON 자동 생성기")
     parser.add_argument(
         "--daemon",
         action="store_true",
