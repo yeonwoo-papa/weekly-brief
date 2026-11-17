@@ -174,18 +174,49 @@
             </button>
         </div>
 
-        <!-- Live Market Indices 3x2 Uniform Grid (Real-time 4s streaming + tick flash) -->
+        <!-- Live Market Indices Paged 3x2 Carousel (12 Global Indices + Swipe & Position Customization) -->
         <section class="bg-slate-950 border-b border-slate-800/90 px-3.5 py-2 shrink-0 space-y-1.5">
-            <div class="flex items-center justify-between text-[10px]">
-                <span class="font-extrabold text-slate-300 flex items-center gap-1">
-                    <span>📊 주요 시장 지수</span>
-                </span>
-                <span id="lblLiveMarketClock" class="text-emerald-400 font-semibold flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                    <span>실시간 수신 대기 중...</span>
+            <div class="flex items-center justify-between gap-1 text-[10px]">
+                <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="font-extrabold text-slate-200 shrink-0">📊 주요 지수</span>
+                    <div class="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-md px-1.5 py-0.5">
+                        <button id="btnMarketPrevPage" type="button" class="text-slate-400 hover:text-white font-bold px-0.5" title="이전 페이지">◀</button>
+                        <span id="lblMarketPageIndicator" class="text-[10px] font-bold text-blue-300">1/2</span>
+                        <button id="btnMarketNextPage" type="button" class="text-slate-400 hover:text-white font-bold px-0.5" title="다음 페이지">▶</button>
+                    </div>
+                    <button id="btnToggleMarketEdit" type="button" class="px-1.5 py-0.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 font-bold text-[10px] transition shrink-0">
+                        ↕️ 위치편집
+                    </button>
+                </div>
+                <span id="lblLiveMarketClock" class="text-emerald-400 font-semibold flex items-center gap-1 truncate">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping shrink-0"></span>
+                    <span class="truncate">실시간 수신 중</span>
                 </span>
             </div>
-            <div id="liveMarketStrip" class="grid grid-cols-3 gap-1.5"></div>
+
+            <!-- Edit Mode Helper Banner (Visible only when customizing order) -->
+            <div id="marketEditBanner" class="hidden bg-indigo-950/80 border border-indigo-500/40 rounded-xl px-2.5 py-1.5 flex items-center justify-between gap-2 text-[11px]">
+                <span id="lblMarketEditHint" class="text-indigo-200 font-semibold truncate">
+                    💡 자리를 바꿀 지수 2개를 차례로 터치하세요 (1·2페이지 간 이동 가능)
+                </span>
+                <div class="flex items-center gap-1 shrink-0">
+                    <button id="btnResetMarketOrder" type="button" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-semibold">
+                        초기화
+                    </button>
+                    <button id="btnDoneMarketEdit" type="button" class="px-2 py-0.5 rounded bg-blue-600 text-white text-[10px] font-bold">
+                        완료
+                    </button>
+                </div>
+            </div>
+
+            <!-- Horizontal Swipeable 2-Page Carousel (Each page is a 3x2 uniform grid) -->
+            <div id="liveMarketCarousel" class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth gap-3"></div>
+
+            <!-- Pagination Dots -->
+            <div class="flex items-center justify-center gap-1.5 pt-0.5">
+                <button type="button" data-market-page="0" class="market-page-dot w-4 h-1 rounded-full bg-blue-500 transition-all"></button>
+                <button type="button" data-market-page="1" class="market-page-dot w-1.5 h-1 rounded-full bg-slate-700 transition-all"></button>
+            </div>
         </section>
 
         <!-- Dynamic Quick Event Jump Bar (Auto-rendered from WEEKLY_EVENTS) -->
@@ -1169,29 +1200,38 @@ npx cap open android`
         }
 
         // =====================================================================
-        // 8-A. 실시간 주요 시장 지수 (CNBC Direct CORS API 연동: 3x2 균일 그리드 & 4초 실시간 스트리밍)
+        // 8-A. 실시간 글로벌 주요 지수 12종 (3x2 2페이지 슬라이드 & 사용자 위치 커스텀 지원)
         // =====================================================================
-        let MARKET_QUOTES = [
+        const DEFAULT_MARKET_QUOTES = [
             {
                 key: 'KOSPI',
                 label: '🇰🇷 KOSPI',
                 cnbcSymbol: '.KS11',
-                priceNum: 5025.05,
-                priceText: '5,025.05',
-                changePct: -1.48,
-                marketOpen: true,
+                priceNum: 5021.53,
+                priceText: '5,021.53',
+                changePct: -1.55,
                 flashDir: null,
                 url: 'https://finance.yahoo.com/quote/%5EKS11/',
+                isLive: false
+            },
+            {
+                key: 'KOSDAQ',
+                label: '🇰🇷 코스닥',
+                cnbcSymbol: '.KQ11',
+                priceNum: 662.38,
+                priceText: '662.38',
+                changePct: -0.49,
+                flashDir: null,
+                url: 'https://finance.yahoo.com/quote/%5EKQ11/',
                 isLive: false
             },
             {
                 key: 'USDKRW',
                 label: '💱 원/달러',
                 cnbcSymbol: 'KRW=',
-                priceNum: 1339.00,
-                priceText: '1,339.00원',
-                changePct: 0.27,
-                marketOpen: true,
+                priceNum: 1339.20,
+                priceText: '1,339.20원',
+                changePct: 0.29,
                 flashDir: null,
                 url: 'https://finance.yahoo.com/quote/KRW%3DX/',
                 isLive: false
@@ -1203,7 +1243,6 @@ npx cap open android`
                 priceNum: 27197.15,
                 priceText: '27,197.15',
                 changePct: -2.67,
-                marketOpen: false,
                 flashDir: null,
                 url: 'https://finance.yahoo.com/quote/%5ENDX/',
                 isLive: false
@@ -1215,19 +1254,39 @@ npx cap open android`
                 priceNum: 7416.59,
                 priceText: '7,416.59',
                 changePct: -1.92,
-                marketOpen: false,
                 flashDir: null,
                 url: 'https://finance.yahoo.com/quote/%5EGSPC/',
+                isLive: false
+            },
+            {
+                key: 'SOX',
+                label: '💾 필라반도체',
+                cnbcSymbol: '.SOX',
+                priceNum: 9610.65,
+                priceText: '9,610.65',
+                changePct: -5.28,
+                flashDir: null,
+                url: 'https://finance.yahoo.com/quote/%5ESOX/',
+                isLive: false
+            },
+            {
+                key: 'N225',
+                label: '🇯🇵 니케이225',
+                cnbcSymbol: '.N225',
+                priceNum: 58971.03,
+                priceText: '58,971.03',
+                changePct: -1.16,
+                flashDir: null,
+                url: 'https://finance.yahoo.com/quote/%5EN225/',
                 isLive: false
             },
             {
                 key: 'US10Y',
                 label: '📈 미10년물',
                 cnbcSymbol: 'US10Y',
-                priceNum: 5.129,
-                priceText: '5.129%',
-                changePct: 0.16,
-                marketOpen: true,
+                priceNum: 5.133,
+                priceText: '5.133%',
+                changePct: 0.23,
                 flashDir: null,
                 url: 'https://finance.yahoo.com/quote/%5ETNX/',
                 isLive: false
@@ -1236,15 +1295,78 @@ npx cap open android`
                 key: 'DXY',
                 label: '💵 달러인덱스',
                 cnbcSymbol: '.DXY',
-                priceNum: 103.601,
-                priceText: '103.601',
-                changePct: 0.05,
-                marketOpen: true,
+                priceNum: 103.637,
+                priceText: '103.637',
+                changePct: 0.08,
                 flashDir: null,
                 url: 'https://finance.yahoo.com/quote/DX-Y.NYB/',
                 isLive: false
+            },
+            {
+                key: 'DJI',
+                label: '🇺🇸 다우존스',
+                cnbcSymbol: '.DJI',
+                priceNum: 51608.17,
+                priceText: '51,608.17',
+                changePct: -1.41,
+                flashDir: null,
+                url: 'https://finance.yahoo.com/quote/%5EDJI/',
+                isLive: false
+            },
+            {
+                key: 'STOXX50',
+                label: '🇪🇺 유로스톡스',
+                cnbcSymbol: '.STOXX50E',
+                priceNum: 6348.35,
+                priceText: '6,348.35',
+                changePct: -0.60,
+                flashDir: null,
+                url: 'https://finance.yahoo.com/quote/%5ESTOXX50E/',
+                isLive: false
+            },
+            {
+                key: 'DAX',
+                label: '🇩🇪 독일 DAX',
+                cnbcSymbol: '.GDAXI',
+                priceNum: 26598.64,
+                priceText: '26,598.64',
+                changePct: -0.57,
+                flashDir: null,
+                url: 'https://finance.yahoo.com/quote/%5EGDAXI/',
+                isLive: false
             }
         ];
+
+        const MARKET_ORDER_STORAGE_KEY = 'macrobrief_market_order_v1';
+        let MARKET_QUOTES = DEFAULT_MARKET_QUOTES.map(item => ({ ...item }));
+        let currentMarketPage = 0;
+        let isMarketEditMode = false;
+        let selectedSwapKey = null;
+
+        function loadSavedMarketOrder() {
+            try {
+                const raw = localStorage.getItem(MARKET_ORDER_STORAGE_KEY);
+                if (!raw) return;
+                const savedKeys = JSON.parse(raw);
+                if (!Array.isArray(savedKeys) || savedKeys.length === 0) return;
+
+                const ordered = [];
+                savedKeys.forEach(k => {
+                    const found = MARKET_QUOTES.find(item => item.key === k);
+                    if (found) ordered.push(found);
+                });
+                MARKET_QUOTES.forEach(item => {
+                    if (!ordered.some(o => o.key === item.key)) ordered.push(item);
+                });
+                MARKET_QUOTES = ordered;
+            } catch (e) {}
+        }
+
+        function saveMarketOrder() {
+            try {
+                localStorage.setItem(MARKET_ORDER_STORAGE_KEY, JSON.stringify(MARKET_QUOTES.map(q => q.key)));
+            } catch (e) {}
+        }
 
         function parseCleanFloat(str) {
             if (typeof str === 'number') return str;
@@ -1267,49 +1389,146 @@ npx cap open android`
             return num.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
-        function renderLiveMarketStrip() {
-            const box = document.getElementById('liveMarketStrip');
-            if (!box) return;
+        function updateMarketPageIndicators(pageIndex) {
+            currentMarketPage = pageIndex;
+            const lbl = document.getElementById('lblMarketPageIndicator');
+            if (lbl) lbl.textContent = `${pageIndex + 1}/2`;
 
-            box.innerHTML = MARKET_QUOTES.map(item => {
-                const pct = Number(item.changePct) || 0;
-                const isUp = pct > 0;
-                const isDown = pct < 0;
-                const pctColor = isUp
-                    ? 'text-emerald-300'
-                    : isDown
-                        ? 'text-rose-300'
-                        : 'text-slate-300';
-                const pctSign = isUp ? '▲ +' : isDown ? '▼ ' : '';
-                const pctText = `${pctSign}${pct.toFixed(2)}%`;
-
-                const liveDot = item.isLive
-                    ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>'
-                    : '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>';
-
-                let cardBorderBg = 'bg-slate-900 border-slate-800';
-                if (item.flashDir === 'up') {
-                    cardBorderBg = 'bg-emerald-950/60 border-emerald-400 ring-1 ring-emerald-400/60';
-                } else if (item.flashDir === 'down') {
-                    cardBorderBg = 'bg-rose-950/60 border-rose-400 ring-1 ring-rose-400/60';
+            document.querySelectorAll('.market-page-dot').forEach(dot => {
+                const idx = Number(dot.getAttribute('data-market-page'));
+                if (idx === pageIndex) {
+                    dot.className = 'market-page-dot w-4 h-1 rounded-full bg-blue-500 transition-all';
+                } else {
+                    dot.className = 'market-page-dot w-1.5 h-1 rounded-full bg-slate-700 transition-all';
                 }
+            });
+        }
 
+        function scrollToMarketPage(pageIndex) {
+            const carousel = document.getElementById('liveMarketCarousel');
+            if (!carousel) return;
+            const totalPages = Math.ceil(MARKET_QUOTES.length / 6);
+            const clamped = (pageIndex + totalPages) % totalPages;
+            carousel.scrollTo({
+                left: clamped * carousel.clientWidth,
+                behavior: 'smooth'
+            });
+            updateMarketPageIndicators(clamped);
+        }
+
+        function renderMarketCardHtml(item, globalIndex) {
+            const pct = Number(item.changePct) || 0;
+            const isUp = pct > 0;
+            const isDown = pct < 0;
+            const pctColor = isUp
+                ? 'text-emerald-300'
+                : isDown
+                    ? 'text-rose-300'
+                    : 'text-slate-300';
+            const pctSign = isUp ? '▲ +' : isDown ? '▼ ' : '';
+            const pctText = `${pctSign}${pct.toFixed(2)}%`;
+
+            const liveDot = item.isLive
+                ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>'
+                : '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>';
+
+            const isSelectedForSwap = isMarketEditMode && selectedSwapKey === item.key;
+
+            let cardBorderBg = 'bg-slate-900 border-slate-800';
+            if (isSelectedForSwap) {
+                cardBorderBg = 'bg-indigo-950/90 border-indigo-400 ring-2 ring-indigo-400';
+            } else if ( isMarketEditMode ) {
+                cardBorderBg = 'bg-slate-900/95 border-indigo-500/40 border-dashed';
+            } else if (item.flashDir === 'up') {
+                cardBorderBg = 'bg-emerald-950/60 border-emerald-400 ring-1 ring-emerald-400/60';
+            } else if (item.flashDir === 'down') {
+                cardBorderBg = 'bg-rose-950/60 border-rose-400 ring-1 ring-rose-400/60';
+            }
+
+            if (isMarketEditMode) {
                 return `
-                <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="h-[66px] ${cardBorderBg} hover:bg-slate-800/90 active:bg-slate-800 border rounded-xl px-2.5 py-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden">
+                <button type="button" data-swap-key="${item.key}" class="market-swap-card h-[66px] ${cardBorderBg} rounded-xl px-2.5 py-1.5 transition-all flex flex-col justify-between overflow-hidden text-left w-full">
                     <div class="flex items-center justify-between gap-1 w-full overflow-hidden">
-                        <span class="text-[10.5px] font-bold text-slate-300 whitespace-nowrap truncate flex items-center gap-1">${liveDot}${item.label}</span>
+                        <span class="text-[10.5px] font-bold text-white whitespace-nowrap truncate">${globalIndex + 1}. ${item.label}</span>
+                        <span class="text-[9px] font-extrabold text-indigo-300 shrink-0">${isSelectedForSwap ? '선택됨' : '교체'}</span>
                     </div>
-                    <div class="text-[13px] font-extrabold text-white tracking-tight whitespace-nowrap truncate leading-none">${item.priceText}</div>
+                    <div class="text-[12.5px] font-extrabold text-slate-200 tracking-tight whitespace-nowrap truncate leading-none">${item.priceText}</div>
                     <div class="flex items-center justify-between gap-1 w-full overflow-hidden">
-                        <span class="text-[10px] font-extrabold whitespace-nowrap truncate ${pctColor}">${pctText}</span>
-                        <span class="text-[9px] text-slate-500 whitespace-nowrap shrink-0">${item.isLive ? 'LIVE' : '대기'}</span>
+                        <span class="text-[10px] font-bold whitespace-nowrap truncate ${pctColor}">${pctText}</span>
+                        <span class="text-[9px] text-indigo-300 whitespace-nowrap shrink-0">터치이동</span>
                     </div>
-                </a>`;
-            }).join('');
+                </button>`;
+            }
+
+            return `
+            <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="h-[66px] ${cardBorderBg} hover:bg-slate-800/90 active:bg-slate-800 border rounded-xl px-2.5 py-1.5 transition-all duration-300 flex flex-col justify-between overflow-hidden">
+                <div class="flex items-center justify-between gap-1 w-full overflow-hidden">
+                    <span class="text-[10.5px] font-bold text-slate-300 whitespace-nowrap truncate flex items-center gap-1">${liveDot}${item.label}</span>
+                </div>
+                <div class="text-[13px] font-extrabold text-white tracking-tight whitespace-nowrap truncate leading-none">${item.priceText}</div>
+                <div class="flex items-center justify-between gap-1 w-full overflow-hidden">
+                    <span class="text-[10px] font-extrabold whitespace-nowrap truncate ${pctColor}">${pctText}</span>
+                    <span class="text-[9px] text-slate-500 whitespace-nowrap shrink-0">${item.isLive ? 'LIVE' : '대기'}</span>
+                </div>
+            </a>`;
+        }
+
+        function renderLiveMarketStrip() {
+            const carousel = document.getElementById('liveMarketCarousel');
+            if (!carousel) return;
+
+            const pages = [];
+            for (let i = 0; i < MARKET_QUOTES.length; i += 6) {
+                const slice = MARKET_QUOTES.slice(i, i + 6);
+                const cardsHtml = slice.map((item, idx) => renderMarketCardHtml(item, i + idx)).join('');
+                pages.push(`<div class="min-w-full shrink-0 snap-center grid grid-cols-3 gap-1.5">${cardsHtml}</div>`);
+            }
+            carousel.innerHTML = pages.join('');
+
+            if (isMarketEditMode) {
+                carousel.querySelectorAll('.market-swap-card').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const clickedKey = btn.getAttribute('data-swap-key');
+                        if (!selectedSwapKey) {
+                            selectedSwapKey = clickedKey;
+                            const found = MARKET_QUOTES.find(q => q.key === clickedKey);
+                            const hintEl = document.getElementById('lblMarketEditHint');
+                            if (hintEl && found) {
+                                hintEl.textContent = `👉 [${found.label}] 선택됨 — 맞바꿀 위치의 지수를 터치하세요!`;
+                            }
+                            renderLiveMarketStrip();
+                        } else if (selectedSwapKey === clickedKey) {
+                            selectedSwapKey = null;
+                            const hintEl = document.getElementById('lblMarketEditHint');
+                            if (hintEl) {
+                                hintEl.textContent = '💡 자리를 바꿀 지수 2개를 차례로 터치하세요 (1·2페이지 간 이동 가능)';
+                            }
+                            renderLiveMarketStrip();
+                        } else {
+                            const idxA = MARKET_QUOTES.findIndex(q => q.key === selectedSwapKey);
+                            const idxB = MARKET_QUOTES.findIndex(q => q.key === clickedKey);
+                            if (idxA !== -1 && idxB !== -1) {
+                                const temp = MARKET_QUOTES[idxA];
+                                MARKET_QUOTES[idxA] = MARKET_QUOTES[idxB];
+                                MARKET_QUOTES[idxB] = temp;
+                                saveMarketOrder();
+                                showToast(`${MARKET_QUOTES[idxB].label} ↔ ${MARKET_QUOTES[idxA].label} 위치 변경 완료!`);
+                            }
+                            selectedSwapKey = null;
+                            const hintEl = document.getElementById('lblMarketEditHint');
+                            if (hintEl) {
+                                hintEl.textContent = '💡 자리를 바꿀 지수 2개를 차례로 터치하세요 (1·2페이지 간 이동 가능)';
+                            }
+                            renderLiveMarketStrip();
+                        }
+                    });
+                });
+            }
         }
 
         async function fetchLiveMarketQuotes() {
-            const cnbcUrl = 'https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=.KS11%7CKRW%3D%7C.NDX%7C.SPX%7CUS10Y%7C.DXY&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1&_=' + Date.now();
+            const symbolsParam = MARKET_QUOTES.map(q => q.cnbcSymbol).join('|');
+            const cnbcUrl = `https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=${encodeURIComponent(symbolsParam)}&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1&_=${Date.now()}`;
             try {
                 const res = await fetch(cnbcUrl, { cache: 'no-store' });
                 if (res.ok) {
@@ -1331,7 +1550,7 @@ npx cap open android`
                                     target.flashDir = lastNum > target.priceNum ? 'up' : 'down';
                                     setTimeout(() => {
                                         target.flashDir = null;
-                                        renderLiveMarketStrip();
+                                        if (!isMarketEditMode) renderLiveMarketStrip();
                                     }, 900);
                                 }
                                 target.priceNum = lastNum;
@@ -1350,9 +1569,11 @@ npx cap open android`
                             const clockEl = document.getElementById('lblLiveMarketClock');
                             if (clockEl) {
                                 const nowStr = new Date().toLocaleTimeString('ko-KR', { hour12: false });
-                                clockEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span><span>실시간 수신 중 · ${nowStr} (4초 주기)</span>`;
+                                clockEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping shrink-0"></span><span class="truncate">실시간 · ${nowStr}</span>`;
                             }
-                            renderLiveMarketStrip();
+                            if (!isMarketEditMode) {
+                                renderLiveMarketStrip();
+                            }
                             return;
                         }
                     }
@@ -1455,6 +1676,7 @@ npx cap open android`
             if (clockEl) clockEl.textContent = `${hh}:${mm}`;
 
             // Initial renders & auto-sync from latest_report.json + live market indices
+            loadSavedMarketOrder();
             renderLiveMarketStrip();
             renderScheduleList();
             renderScenarioView();
@@ -1462,6 +1684,60 @@ npx cap open android`
             syncLatestReportFromRepo(false);
             fetchLiveMarketQuotes();
             setInterval(fetchLiveMarketQuotes, 4000);
+
+            // Market Carousel Swipe / Page Navigation & Position Edit Listeners
+            const marketCarousel = document.getElementById('liveMarketCarousel');
+            if (marketCarousel) {
+                marketCarousel.addEventListener('scroll', () => {
+                    if (marketCarousel.clientWidth > 0) {
+                        const pageIdx = Math.round(marketCarousel.scrollLeft / marketCarousel.clientWidth);
+                        updateMarketPageIndicators(pageIdx);
+                    }
+                });
+            }
+            const btnPrevPage = document.getElementById('btnMarketPrevPage');
+            const btnNextPage = document.getElementById('btnMarketNextPage');
+            if (btnPrevPage) btnPrevPage.addEventListener('click', () => scrollToMarketPage(currentMarketPage - 1));
+            if (btnNextPage) btnNextPage.addEventListener('click', () => scrollToMarketPage(currentMarketPage + 1));
+
+            document.querySelectorAll('.market-page-dot').forEach(dot => {
+                dot.addEventListener('click', () => {
+                    scrollToMarketPage(Number(dot.getAttribute('data-market-page')) || 0);
+                });
+            });
+
+            const toggleEditMode = (forceState) => {
+                isMarketEditMode = typeof forceState === 'boolean' ? forceState : !isMarketEditMode;
+                selectedSwapKey = null;
+                const banner = document.getElementById('marketEditBanner');
+                const btnEdit = document.getElementById('btnToggleMarketEdit');
+                if (banner) banner.classList.toggle('hidden', !isMarketEditMode);
+                if (btnEdit) {
+                    btnEdit.textContent = isMarketEditMode ? '✓ 편집중' : '↕️ 위치편집';
+                    btnEdit.className = isMarketEditMode
+                        ? 'px-1.5 py-0.5 rounded-md bg-indigo-600 text-white border border-indigo-400 font-bold text-[10px] transition shrink-0'
+                        : 'px-1.5 py-0.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 font-bold text-[10px] transition shrink-0';
+                }
+                renderLiveMarketStrip();
+            };
+
+            const btnToggleEdit = document.getElementById('btnToggleMarketEdit');
+            const btnDoneEdit = document.getElementById('btnDoneMarketEdit');
+            const btnResetOrder = document.getElementById('btnResetMarketOrder');
+            if (btnToggleEdit) btnToggleEdit.addEventListener('click', () => toggleEditMode());
+            if (btnDoneEdit) btnDoneEdit.addEventListener('click', () => toggleEditMode(false));
+            if (btnResetOrder) {
+                btnResetOrder.addEventListener('click', () => {
+                    const defaultKeys = DEFAULT_MARKET_QUOTES.map(d => d.key);
+                    MARKET_QUOTES.sort((a, b) => defaultKeys.indexOf(a.key) - defaultKeys.indexOf(b.key));
+                    selectedSwapKey = null;
+                    try {
+                        localStorage.removeItem(MARKET_ORDER_STORAGE_KEY);
+                    } catch (e) {}
+                    renderLiveMarketStrip();
+                    showToast('기본 지수 순서로 초기화되었습니다.');
+                });
+            }
 
             // Manual refresh button in top sync status bar
             const btnRefreshSync = document.getElementById('btnRefreshSync');
