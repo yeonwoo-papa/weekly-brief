@@ -174,8 +174,13 @@
             </button>
         </div>
 
+        <!-- Live Market Indices Strip (Real-time fetch + fallback) -->
+        <section class="bg-slate-950 border-b border-slate-800/90 px-3.5 py-2 shrink-0">
+            <div id="liveMarketStrip" class="flex items-center gap-2 overflow-x-auto no-scrollbar snap-x snap-mandatory"></div>
+        </section>
+
         <!-- Dynamic Quick Event Jump Bar (Auto-rendered from WEEKLY_EVENTS) -->
-        <section class="bg-slate-900/75 border-b border-slate-800/80 px-3.5 py-2 shrink-0">
+        <section class="bg-slate-900/75 border-b border-slate-800/80 px-3.5 py-1.5 shrink-0">
             <div id="quickEventTimeline" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar snap-x"></div>
         </section>
 
@@ -1154,6 +1159,182 @@ npx cap open android`
             }
         }
 
+        // =====================================================================
+        // 8-A. 실시간 주요 시장 지수 (KOSPI, USD/KRW, 나스닥100, S&P500, 미10년물, DXY)
+        // =====================================================================
+        let MARKET_QUOTES = [
+            {
+                key: 'KOSPI',
+                label: '🇰🇷 KOSPI',
+                yahooSymbol: '^KS11',
+                priceText: '5,037.89',
+                changePct: -3.84,
+                subText: '전일 5,239.13',
+                url: 'https://finance.yahoo.com/quote/%5EKS11/',
+                isLive: false
+            },
+            {
+                key: 'USDKRW',
+                label: '💱 원/달러 환율',
+                yahooSymbol: 'KRW=X',
+                priceText: '1,336.70원',
+                changePct: 0.11,
+                subText: 'USD/KRW',
+                url: 'https://finance.yahoo.com/quote/KRW%3DX/',
+                isLive: false
+            },
+            {
+                key: 'NDX',
+                label: '🇺🇸 나스닥 100',
+                yahooSymbol: '^NDX',
+                priceText: '20,680.00',
+                changePct: 0.45,
+                subText: 'NASDAQ 100',
+                url: 'https://finance.yahoo.com/quote/%5ENDX/',
+                isLive: false
+            },
+            {
+                key: 'SP500',
+                label: '🇺🇸 S&P 500',
+                yahooSymbol: '^GSPC',
+                priceText: '5,940.00',
+                changePct: 0.28,
+                subText: 'S&P 500 지수',
+                url: 'https://finance.yahoo.com/quote/%5EGSPC/',
+                isLive: false
+            },
+            {
+                key: 'US10Y',
+                label: '📈 미 10년물 금리',
+                yahooSymbol: '^TNX',
+                priceText: '4.42%',
+                changePct: -0.65,
+                subText: 'US 10Y Yield',
+                url: 'https://finance.yahoo.com/quote/%5ETNX/',
+                isLive: false
+            },
+            {
+                key: 'DXY',
+                label: '💵 달러 인덱스',
+                yahooSymbol: 'DX-Y.NYB',
+                priceText: '106.20',
+                changePct: 0.15,
+                subText: 'DXY Index',
+                url: 'https://finance.yahoo.com/quote/DX-Y.NYB/',
+                isLive: false
+            }
+        ];
+
+        function formatQuoteNumber(key, val) {
+            const num = Number(val);
+            if (!Number.isFinite(num)) return '-';
+            if (key === 'USDKRW') {
+                return num.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '원';
+            }
+            if (key === 'US10Y') {
+                return num.toFixed(2) + '%';
+            }
+            return num.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function renderLiveMarketStrip() {
+            const box = document.getElementById('liveMarketStrip');
+            if (!box) return;
+
+            box.innerHTML = MARKET_QUOTES.map(item => {
+                const pct = Number(item.changePct) || 0;
+                const isUp = pct > 0;
+                const isDown = pct < 0;
+                const pctBadgeClass = isUp
+                    ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30'
+                    : isDown
+                        ? 'text-rose-300 bg-rose-500/15 border-rose-500/30'
+                        : 'text-slate-300 bg-slate-800 border-slate-700';
+                const pctSign = isUp ? '▲ +' : isDown ? '▼ ' : '';
+                const pctText = `${pctSign}${pct.toFixed(2)}%`;
+                const liveDot = item.isLive
+                    ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" title="실시간 연동됨"></span>'
+                    : '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" title="최근 스냅샷"></span>';
+
+                return `
+                <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="snap-start shrink-0 w-36 bg-slate-900 hover:bg-slate-800/90 active:bg-slate-800 border border-slate-800 rounded-xl p-2.5 transition block">
+                    <div class="flex items-center justify-between gap-1">
+                        <span class="text-[11px] font-bold text-slate-300 truncate flex items-center gap-1">${liveDot}${item.label}</span>
+                    </div>
+                    <div class="text-[14px] font-extrabold text-white mt-1 tracking-tight">${item.priceText}</div>
+                    <div class="flex items-center justify-between gap-1 mt-1">
+                        <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded border ${pctBadgeClass}">${pctText}</span>
+                        <span class="text-[10px] text-slate-500 truncate">${item.isLive ? '실시간' : '최근'}</span>
+                    </div>
+                </a>`;
+            }).join('');
+        }
+
+        async function fetchSingleYahooQuote(symbol) {
+            const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d&_=${Date.now()}`;
+            const proxies = [
+                `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`,
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`
+            ];
+
+            for (const proxyUrl of proxies) {
+                try {
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), 5500);
+                    const res = await fetch(proxyUrl, { signal: controller.signal, cache: 'no-store' });
+                    clearTimeout(timer);
+                    if (!res.ok) continue;
+                    const data = await res.json();
+                    const meta = data?.chart?.result?.[0]?.meta;
+                    if (meta && Number.isFinite(meta.regularMarketPrice)) {
+                        const price = Number(meta.regularMarketPrice);
+                        const prev = Number(meta.chartPreviousClose || meta.previousClose || price);
+                        const changePct = prev ? ((price - prev) / prev) * 100 : 0;
+                        return { price, prev, changePct };
+                    }
+                } catch (e) {
+                    // try next proxy
+                }
+            }
+            return null;
+        }
+
+        async function fetchLiveMarketQuotes() {
+            renderLiveMarketStrip();
+
+            // 1) Direct CORS-native USD/KRW fallback first for instant FX update
+            try {
+                const fxRes = await fetch('https://open.er-api.com/v6/latest/USD', { cache: 'no-store' });
+                if (fxRes.ok) {
+                    const fxData = await fxRes.json();
+                    const krw = fxData?.rates?.KRW;
+                    if (Number.isFinite(krw)) {
+                        const fxItem = MARKET_QUOTES.find(q => q.key === 'USDKRW');
+                        if (fxItem && !fxItem.isLive) {
+                            fxItem.priceText = formatQuoteNumber('USDKRW', krw);
+                            fxItem.isLive = true;
+                            renderLiveMarketStrip();
+                        }
+                    }
+                }
+            } catch (e) {}
+
+            // 2) Fetch all 6 symbols from Yahoo Finance chart API in parallel
+            await Promise.allSettled(
+                MARKET_QUOTES.map(async (item) => {
+                    const quote = await fetchSingleYahooQuote(item.yahooSymbol);
+                    if (quote) {
+                        item.priceText = formatQuoteNumber(item.key, quote.price);
+                        item.changePct = quote.changePct;
+                        item.subText = `전일 ${formatQuoteNumber(item.key, quote.prev)}`;
+                        item.isLive = true;
+                        renderLiveMarketStrip();
+                    }
+                })
+            );
+        }
+
         async function syncLatestReportFromRepo(isManual = false) {
             const syncBadge = document.getElementById('lblSyncStatusBadge');
             const refreshBtn = document.getElementById('btnRefreshSync');
@@ -1162,6 +1343,7 @@ npx cap open android`
             if (isManual) {
                 if (refreshBtn) refreshBtn.disabled = true;
                 if (refreshIcon) refreshIcon.classList.add('animate-spin');
+                fetchLiveMarketQuotes();
             }
 
             try {
@@ -1170,6 +1352,19 @@ npx cap open android`
                 const data = await res.json();
                 if (!data || !Array.isArray(data.events) || data.events.length === 0) {
                     throw new Error(data?.lastError || '유효한 이벤트 데이터가 없습니다.');
+                }
+
+                // Apply snapshot marketQuotes from latest_report.json if present (before live fetch overrides)
+                if (Array.isArray(data.marketQuotes) && data.marketQuotes.length > 0) {
+                    data.marketQuotes.forEach(sq => {
+                        const target = MARKET_QUOTES.find(q => q.key === sq.key);
+                        if (target && !target.isLive) {
+                            if (sq.priceText) target.priceText = sq.priceText;
+                            if (typeof sq.changePct === 'number') target.changePct = sq.changePct;
+                            if (sq.subText) target.subText = sq.subText;
+                        }
+                    });
+                    renderLiveMarketStrip();
                 }
 
                 WEEKLY_EVENTS = data.events;
@@ -1234,11 +1429,14 @@ npx cap open android`
             const clockEl = document.getElementById('lblStatusBarClock');
             if (clockEl) clockEl.textContent = `${hh}:${mm}`;
 
-            // Initial renders & auto-sync from latest_report.json
+            // Initial renders & auto-sync from latest_report.json + live market indices
+            renderLiveMarketStrip();
             renderScheduleList();
             renderScenarioView();
             renderConfigViewer('workflow');
             syncLatestReportFromRepo(false);
+            fetchLiveMarketQuotes();
+            setInterval(fetchLiveMarketQuotes, 60000);
 
             // Manual refresh button in top sync status bar
             const btnRefreshSync = document.getElementById('btnRefreshSync');

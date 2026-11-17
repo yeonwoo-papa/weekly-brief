@@ -331,6 +331,48 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 
 
+def fetch_market_quotes_snapshot() -> list[dict]:
+    """Yahoo Finance 공개 API에서 주요 지수 6종(KOSPI, USD/KRW, 나스닥100, S&P500, 미10년물, DXY)의 최신 시세를 수집합니다."""
+    symbols = [
+        ("KOSPI", "🇰🇷 KOSPI", "^KS11"),
+        ("USDKRW", "💱 원/달러 환율", "KRW=X"),
+        ("NDX", "🇺🇸 나스닥 100", "^NDX"),
+        ("SP500", "🇺🇸 S&P 500", "^GSPC"),
+        ("US10Y", "📈 미 10년물 금리", "^TNX"),
+        ("DXY", "💵 달러 인덱스", "DX-Y.NYB"),
+    ]
+    quotes: list[dict] = []
+    headers = {"User-Agent": "Mozilla/5.0"}
+
+    def _fmt(key: str, val: float) -> str:
+        if key == "USDKRW":
+            return f"{val:,.2f}원"
+        if key == "US10Y":
+            return f"{val:.2f}%"
+        return f"{val:,.2f}"
+
+    for key, label, sym in symbols:
+        try:
+            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?interval=1d&range=5d"
+            r = requests.get(url, headers=headers, timeout=8)
+            r.raise_for_status()
+            meta = r.json()["chart"]["result"][0]["meta"]
+            price = float(meta["regularMarketPrice"])
+            prev = float(meta.get("chartPreviousClose") or meta.get("previousClose") or price)
+            pct = ((price - prev) / prev * 100.0) if prev else 0.0
+            quotes.append({
+                "key": key,
+                "label": label,
+                "yahooSymbol": sym,
+                "priceText": _fmt(key, price),
+                "changePct": round(pct, 2),
+                "subText": f"전일 {_fmt(key, prev)}",
+            })
+        except Exception as e:
+            print(f"[안내] {key} ({sym}) 시세 스냅샷 조회 건너뜀: {e}")
+    return quotes
+
+
 def _write_fallback_sync_metadata(week_range: str, error_msg: str) -> None:
     """API 호출 또는 JSON 변환 실패 시에도 원인 파악을 위한 상태 메타데이터를 latest_report.json에 기록합니다."""
     out_path = Path("latest_report.json")
@@ -455,6 +497,9 @@ def generate_web_sync_json(report_md: str, week_range: str) -> None:
                 data["updatedAt"] = now_str
                 data["modelUsed"] = candidate_model
                 data["syncStatus"] = "ok"
+                market_quotes = fetch_market_quotes_snapshot()
+                if market_quotes:
+                    data["marketQuotes"] = market_quotes
 
                 out_path.write_text(
                     json.dumps(data, ensure_ascii=False, indent=2),
