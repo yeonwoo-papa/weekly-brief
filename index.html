@@ -207,6 +207,17 @@
             </div>
         </header>
 
+        <!-- Persistent Sync Status Bar (Always visible right below header) -->
+        <div id="syncStatusBar" class="bg-slate-900/90 border-b border-slate-800/90 px-3.5 py-1.5 flex items-center justify-between gap-2 shrink-0 no-print">
+            <div id="lblSyncStatusBadge" class="text-[11px] font-medium text-amber-300 truncate">
+                🟡 기본 내장 데이터 표시 중 (2026-11-13 기준 · latest_report.json 미연동)
+            </div>
+            <button id="btnRefreshSync" type="button" class="px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 text-[11px] font-semibold border border-slate-700 shrink-0 transition flex items-center gap-1">
+                <span id="icoRefreshSync">🔄</span>
+                <span>새로고침</span>
+            </button>
+        </div>
+
         <!-- Single-Row Horizontal Swipe Market Ticker Strip (Optimized for Mobile) -->
         <section class="bg-slate-950 border-b border-slate-800/80 px-3 py-2 shrink-0 no-print">
             <div class="flex items-center gap-2 overflow-x-auto no-scrollbar snap-x snap-mandatory">
@@ -304,11 +315,11 @@
                     <div class="grid grid-cols-1 gap-2 pt-1 text-xs">
                         <div class="bg-slate-950/80 border border-slate-800/90 rounded-xl p-2.5 flex items-start gap-2">
                             <span class="text-emerald-400 font-bold shrink-0">🇰🇷 KOSPI</span>
-                            <span class="text-slate-300">신용잔고 7월 저점 하회로 매물 소화 완료(<a href="https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">삼성증권</a>). 반도체 가이던스 확인 전까지 로봇·바이오 순환매 대응.</span>
+                            <span id="lblHeroKospiSummary" class="text-slate-300">신용잔고 7월 저점 하회로 매물 소화 완료(<a href="https://www.samsungpop.com/common.do?cmd=down&contentType=application/pdf&inlineYn=Y&saveKey=research.pdf&fileName=4010/2026111317241762K_02_01.pdf" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">삼성증권</a>). 반도체 가이던스 확인 전까지 로봇·바이오 순환매 대응.</span>
                         </div>
                         <div class="bg-slate-950/80 border border-slate-800/90 rounded-xl p-2.5 flex items-start gap-2">
                             <span class="text-blue-400 font-bold shrink-0">🇺🇸 미ETF</span>
-                            <span class="text-slate-300">환율 1,336.7원(<a href="https://english.mofe.go.kr/" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">기재부</a>) 및 한은 11/25 인상 가능성(<a href="https://www.koreatimes.co.kr/economy/20261029/feds-hawkish-hold-strengthens-case-for-boks-hike-in-november" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">Korea Times</a>) 감안, 나스닥100·S&P500 분할 접근.</span>
+                            <span id="lblHeroUsEtfSummary" class="text-slate-300">환율 1,336.7원(<a href="https://english.mofe.go.kr/" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">기재부</a>) 및 한은 11/25 인상 가능성(<a href="https://www.koreatimes.co.kr/economy/20261029/feds-hawkish-hold-strengthens-case-for-boks-hike-in-november" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline">Korea Times</a>) 감안, 나스닥100·S&P500 분할 접근.</span>
                         </div>
                     </div>
                 </div>
@@ -1306,12 +1317,23 @@ npx cap open android`
         }
 
         
-        async function syncLatestReportFromRepo() {
+        async function syncLatestReportFromRepo(isManual = false) {
+            const syncBadge = document.getElementById('lblSyncStatusBadge');
+            const refreshBtn = document.getElementById('btnRefreshSync');
+            const refreshIcon = document.getElementById('icoRefreshSync');
+
+            if (isManual) {
+                if (refreshBtn) refreshBtn.disabled = true;
+                if (refreshIcon) refreshIcon.classList.add('animate-spin');
+            }
+
             try {
-                const res = await fetch('./latest_report.json?t=' + Date.now());
-                if (!res.ok) return;
+                const res = await fetch('./latest_report.json?t=' + Date.now(), { cache: 'no-store' });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
-                if (!data || !Array.isArray(data.events) || data.events.length === 0) return;
+                if (!data || !Array.isArray(data.events) || data.events.length === 0) {
+                    throw new Error(data?.lastError || '유효한 이벤트 데이터가 없습니다.');
+                }
 
                 WEEKLY_EVENTS = data.events;
                 selectedEventId = WEEKLY_EVENTS[0].id || 'event-1';
@@ -1319,8 +1341,11 @@ npx cap open android`
                 const weekBadge = document.getElementById('lblHeroWeekBadge');
                 const headlineEl = document.getElementById('lblHeroHeadline');
                 const summaryEl = document.getElementById('lblHeroSummary');
+                const kospiSummaryEl = document.getElementById('lblHeroKospiSummary');
+                const usEtfSummaryEl = document.getElementById('lblHeroUsEtfSummary');
                 const modelBadge = document.getElementById('lblReportModelBadge');
                 const apiStatus = document.getElementById('lblApiStatus');
+                const allFilterBtn = document.querySelector('.country-filter-btn[data-country="ALL"]');
 
                 if (weekBadge && data.weekLabel) {
                     weekBadge.textContent = `${data.weekLabel} (자동 동기화됨)`;
@@ -1331,19 +1356,45 @@ npx cap open android`
                 if (summaryEl && data.heroSummary) {
                     summaryEl.textContent = data.heroSummary;
                 }
+                if (kospiSummaryEl && data.kospiSummary) {
+                    kospiSummaryEl.textContent = data.kospiSummary;
+                }
+                if (usEtfSummaryEl && data.usEtfSummary) {
+                    usEtfSummaryEl.textContent = data.usEtfSummary;
+                }
                 if (modelBadge && data.modelUsed) {
                     modelBadge.textContent = data.modelUsed;
                 }
                 if (apiStatus && data.updatedAt) {
                     apiStatus.textContent = `동기화 완료: ${data.updatedAt} (${data.modelUsed || ''})`;
                 }
+                if (allFilterBtn) {
+                    allFilterBtn.textContent = `전체 (${WEEKLY_EVENTS.length})`;
+                }
+                if (syncBadge) {
+                    syncBadge.textContent = `🟢 최신 동기화: ${data.updatedAt || '방금 전'} (모델: ${data.modelUsed || 'gemini-flash'})`;
+                    syncBadge.className = 'text-[11px] font-semibold text-emerald-300 truncate';
+                }
 
                 renderScheduleList();
-            syncLatestReportFromRepo();
                 renderScenarioView();
                 renderDefaultPrintableReport();
+
+                if (isManual) {
+                    showToast(`최신 데이터 동기화 완료 (${data.updatedAt || '최신'})`);
+                }
             } catch (e) {
                 // Offline/local preview fallback uses built-in WEEKLY_EVENTS
+                if (syncBadge) {
+                    syncBadge.textContent = '🟡 기본 내장 데이터 표시 중 (2026-11-13 기준 · latest_report.json 미연동)';
+                    syncBadge.className = 'text-[11px] font-medium text-amber-300 truncate';
+                }
+                if (isManual) {
+                    showToast('latest_report.json 연동 실패 — 기본 내장 데이터를 표시합니다.');
+                }
+            } finally {
+                if (refreshBtn) refreshBtn.disabled = false;
+                if (refreshIcon) refreshIcon.classList.remove('animate-spin');
             }
         }
 
@@ -1363,11 +1414,18 @@ npx cap open android`
                 }
             } catch (e) {}
 
-            // Initial renders
+            // Initial renders & auto-sync from latest_report.json
             renderScheduleList();
             renderScenarioView();
             renderDefaultPrintableReport();
             renderConfigViewer('workflow');
+            syncLatestReportFromRepo(false);
+
+            // Manual refresh button in top sync status bar
+            const btnRefreshSync = document.getElementById('btnRefreshSync');
+            if (btnRefreshSync) {
+                btnRefreshSync.addEventListener('click', () => syncLatestReportFromRepo(true));
+            }
 
             // Preview mode switcher buttons
             document.getElementById('btnModePhone').addEventListener('click', () => setPreviewMode('phone'));

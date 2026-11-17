@@ -330,13 +330,52 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 
 
+def _write_fallback_sync_metadata(week_range: str, error_msg: str) -> None:
+    """API 호출 또는 JSON 변환 실패 시에도 원인 파악을 위한 상태 메타데이터를 latest_report.json에 기록합니다."""
+    out_path = Path("latest_report.json")
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M KST")
+    existing_data: dict = {}
+
+    if out_path.exists():
+        try:
+            loaded = json.loads(out_path.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                existing_data = loaded
+        except Exception as e:
+            print(f"[경고] 기존 latest_report.json 파싱 실패 ({e})")
+
+    existing_data.setdefault("weekLabel", week_range)
+    existing_data.setdefault("updatedAt", now_str)
+    existing_data.setdefault("modelUsed", MODEL_ID)
+    existing_data.setdefault("events", [])
+    existing_data["syncStatus"] = "error"
+    existing_data["lastAttemptAt"] = now_str
+    existing_data["lastError"] = str(error_msg)[:500]
+
+    out_path.write_text(
+        json.dumps(existing_data, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    file_size = out_path.stat().st_size if out_path.exists() else 0
+    event_count = len(existing_data.get("events") or [])
+    print(
+        f"[오류 기록] latest_report.json에 실패 상태 메타데이터 기록 완료 "
+        f"(파일 크기: {file_size:,} bytes, 유지된 이벤트: {event_count}개, 원인: {error_msg})"
+    )
+
+
 def generate_web_sync_json(report_md: str, week_range: str) -> None:
     """생성된 마크다운 리포트를 모바일 웹앱(index.html) 동기화용 latest_report.json으로 변환 저장합니다."""
+    out_path = Path("latest_report.json")
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
+        err = "GEMINI_API_KEY 환경변수가 설정되지 않음"
+        print(f"[오류] {err} — latest_report.json 생성을 건너뜁니다.")
+        _write_fallback_sync_metadata(week_range, err)
         return
 
     client = genai.Client(api_key=api_key)
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M KST")
     schema_prompt = f"""
 아래 주간 금융 리포트 Markdown을 모바일 웹앱에서 바로 렌더링할 수 있는 순수 JSON 객체로 변환해 주세요.
 반드시 유효한 JSON만 출력하고 마크다운 코드블록(```json)은 쓰지 마세요.
@@ -344,7 +383,7 @@ def generate_web_sync_json(report_md: str, week_range: str) -> None:
 필수 JSON 구조:
 {{
   "weekLabel": "{week_range}",
-  "updatedAt": "{datetime.datetime.now().strftime('%Y-%m-%d %H:%M KST')}",
+  "updatedAt": "{now_str}",
   "modelUsed": "{MODEL_ID}",
   "heroHeadline": "이번 주 핵심 한 줄 헤드라인",
   "heroSummary": "이번 주 매크로 요약 2~3문장",
@@ -390,8 +429,10 @@ def generate_web_sync_json(report_md: str, week_range: str) -> None:
 [변환할 리포트 원문]
 {report_md[:12000]}
 """
+    last_error = "알 수 없는 오류"
     for candidate_model in MODEL_CANDIDATES:
         try:
+            print(f"[{datetime.datetime.now():%Y-%m-%d %H:%M:%S}] {candidate_model} 모델로 latest_report.json 변환 요청 중...")
             res = client.models.generate_content(
                 model=candidate_model,
                 contents=schema_prompt,
@@ -401,17 +442,41 @@ def generate_web_sync_json(report_md: str, week_range: str) -> None:
                 ),
             )
             raw = (res.text or "").strip()
+            if raw.startswith("```"):
+                raw = raw.strip("`")
+                if raw.lower().startswith("json"):
+                    raw = raw[4:].strip()
+
             data = json.loads(raw)
-            if isinstance(data, dict) and data.get("events"):
-                Path("latest_report.json").write_text(
+            events = data.get("events") if isinstance(data, dict) else None
+            if isinstance(data, dict) and isinstance(events, list) and len(events) > 0:
+                data["weekLabel"] = data.get("weekLabel") or week_range
+                data["updatedAt"] = now_str
+                data["modelUsed"] = candidate_model
+                data["syncStatus"] = "ok"
+
+                out_path.write_text(
                     json.dumps(data, ensure_ascii=False, indent=2),
                     encoding="utf-8",
                 )
-                print("[완료] 모바일 웹앱 동기화용 latest_report.json 저장 완료")
+                file_size = out_path.stat().st_size if out_path.exists() else 0
+                event_count = len(events)
+                print(
+                    f"[완료] 모바일 웹앱 동기화용 latest_report.json 저장 및 검증 완료 "
+                    f"(파일 크기: {file_size:,} bytes, 이벤트 개수: {event_count}개, "
+                    f"모델: {data['modelUsed']}, 업데이트 일시: {data['updatedAt']})"
+                )
                 return
+            else:
+                last_error = f"{candidate_model} 응답 JSON 내 유효한 events 배열이 비어 있음 (응답 길이: {len(raw)}자)"
+                print(f"[경고] {last_error}")
         except Exception as e:
-            print(f"[안내] {candidate_model} JSON 변환 건너뜀 ({e})")
+            last_error = f"{candidate_model} 예외 발생: {type(e).__name__}: {e}"
+            print(f"[안내] {candidate_model} JSON 변환 건너뜀 ({last_error})")
             time.sleep(1)
+
+    print(f"[오류] 모든 후보 모델에서 latest_report.json 변환에 실패했습니다. 마지막 원인: {last_error}")
+    _write_fallback_sync_metadata(week_range, last_error)
 
 def save_report_files(report_md: str, week_range: str, file_stamp: str) -> tuple[Path, Path, Path]:
     """마크다운 텍스트를 .md, .html, .pdf 파일로 각각 저장합니다."""
@@ -502,7 +567,13 @@ def send_telegram_report(pdf_path: Path, week_range: str, report_md: str) -> Non
 def run_weekly_job() -> None:
     """1회 주간 리포트 생성 및 파일 저장/전송 작업을 수행합니다."""
     week_range, _, file_stamp = get_week_date_range()
-    report_md = generate_macro_report_markdown(week_range)
+    try:
+        report_md = generate_macro_report_markdown(week_range)
+    except Exception as e:
+        print(f"[치명적 오류] 마크다운 리포트 생성 실패: {e}")
+        _write_fallback_sync_metadata(week_range, f"마크다운 리포트 생성 실패: {e}")
+        raise
+
     _, _, pdf_path = save_report_files(report_md, week_range, file_stamp)
     generate_web_sync_json(report_md, week_range)
     send_telegram_report(pdf_path, week_range, report_md)
