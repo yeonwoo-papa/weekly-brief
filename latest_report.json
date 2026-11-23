@@ -1,34 +1,34 @@
 {
-  "weekLabel": "2026-11-16 ~ 2026-11-22",
-  "updatedAt": "2026-11-17 08:55 KST",
+  "weekLabel": "2026-11-23 ~ 2026-11-29",
+  "updatedAt": "2026-11-23 10:01 KST",
   "modelUsed": "gemini-3.8-flash",
-  "heroHeadline": "미국 소비 지표·엔비디아 실적 발표 속 통화정책 불확실성과 AI 모멘텀 검증의 주간",
-  "heroSummary": "이번 주는 미국 10월 소매판매와 11월 Flash PMI, 엔비디아 실적 발표가 집중된 매크로 및 테크 핵심 분기점입니다. 미 국채 금리 하방 경직성과 달러 강세 압력이 유지되는 가운데 연준의 금리 인하 속도 불확실성이 지속되고 있습니다. 지정학적 리스크와 환율 변동성에 대비한 자산군별 차별화 전략이 필요합니다.",
-  "kospiSummary": "원/달러 환율 고점 경계감 속 반도체/AI 밸류체인 분할 매수 및 고배당 밸류업·금융주 바벨 전략이 유효합니다.",
-  "usEtfSummary": "환노출형(Unhedged) 지수 ETF 중심의 관점 유지가 유리하며, 헬스케어 및 유틸리티 등 방어 섹터 분산 편입을 권장합니다.",
+  "heroHeadline": "美 물가 둔화세 확인과 FOMC 의사록 공개 앞두고 관망세 짙은 박스권 장세 예상",
+  "heroSummary": "이번 주는 미국의 주요 소비 지표와 연준 위원들의 발언을 통해 금리 인하 경로의 지속 가능성을 점검하는 주간입니다. 견조한 소비 지표가 지속될 경우 경기 연착륙 기대감이 유지되겠으나 달러 강세 압력이 상존할 것으로 보입니다. 국내외 증시는 뚜렷한 모멘텀 부재 속 개별 실적 및 거시 지표에 따른 종목별 차별화 장세가 전개될 가능성이 높습니다.",
+  "kospiSummary": "외국인 수급 유입 제한과 환율 변동성으로 인해 2,450~2,550선 내 제한적 등락이 예상되며, 방어주 및 실적 개선 대형주 중심의 보수적 접근이 유효합니다.",
+  "usEtfSummary": "환율 상방 압력에 따라 미국 주식 환노출형 ETF의 하방 지지력이 우세할 전망이며, 장기 국채 ETF는 금리 레벨 부담으로 분할 매수 관점이 유리합니다.",
   "events": [
     {
       "id": "event-1",
-      "dayLabel": "11/17 (화) 22:30 KST",
-      "shortName": "11/17 미 소매판매",
+      "dayLabel": "11/25 (화) 22:30 KST",
+      "shortName": "11/25 미 10월 소매판매",
       "country": "US",
       "countryBadge": "🇺🇸 미국",
       "title": "미국 10월 소매판매 (Retail Sales MoM)",
       "importance": 3,
       "previous": "+0.4%",
       "consensus": "+0.3%",
-      "ibForecast": "Goldman Sachs는 초과 저축 고갈로 소비 둔화 가시화를 예상하는 반면, BofA는 견조한 고용에 기반한 연착륙을 전망함.",
-      "sourceTitle": "Goldman Sachs Insights",
-      "sourceUrl": "https://www.goldmansachs.com/insights",
-      "secondSourceTitle": "Bank of America Global Research",
-      "secondSourceUrl": "https://business.bofa.com/en-us/content/bank-of-america-global-research.html",
-      "watchPoint": "자동차, 가솔린 등을 제외한 GDP 직결 '통제그룹 소매판매'의 강도",
+      "ibForecast": "골드만삭스와 JP모건은 견고한 고용 지표에 힘입어 소비 둔화 폭이 제한적일 것으로 전망하며 0.3% 안팎의 완만한 증가세를 예상하고 있습니다.",
+      "sourceTitle": "미국 인구조사국(US Census Bureau)",
+      "sourceUrl": "https://www.census.gov/retail",
+      "secondSourceTitle": "블룸버그 경제 캘린더",
+      "secondSourceUrl": "https://www.bloomberg.com/markets/economic-calendar",
+      "watchPoint": "핵심 소매판매(자동차·에너지 제외)의 견조함 여부를 통한 소비 펀더멘털 유지 확인",
       "scenarios": {
         "beat": {
-          "headline": "소매판매 예상 상회 (MoM +0.5% 이상) / 매파적 결과",
-          "ratesFx": "미 10년물 금리 4.45% 돌파 시도, 달러 인덱스 106선 안착 및 원/달러 1,400원 상향 돌파 압력",
-          "kospiImpact": "외국인 지수 선물 및 대형주 매도세 출회. KOSPI 2,450선 지지력 테스트, 2차전지·바이오 약세 및 자동차·조선 방어",
-          "usEtfImpact": "나스닥100(QQQ) 밸류에이션 부담 가중, 금융(XLF)·에너지(XLE) 우위. 환노출형(Unhedged) ETF 초과수익 창출",
+          "headline": "소비 서프라이즈로 금리 인하 지연 우려 재점화",
+          "ratesFx": "미 국채 10년물 금리 상승, 달러 인덱스 강세 및 원/달러 환율 1,400원선 재위협",
+          "kospiImpact": "외국인 매도세 출회 가능성 증대 및 성장주·기술주 중심 하방 압력",
+          "usEtfImpact": "S&P500 환노출형(SPY 등)은 환율 상승으로 방어 가능하나 환헤지형 및 장기채 ETF(TLT)는 하락",
           "scores": [
             -1.0,
             -1.5,
@@ -38,10 +38,10 @@
           ]
         },
         "miss": {
-          "headline": "소매판매 예상 하회 (MoM 0.0% 이하) / 비둘기파적 결과",
-          "ratesFx": "미 10년물 4.30% 하회, 2년물 4.15%대 급락, 원/달러 환율 1,370원선으로 하향 안정화",
-          "kospiImpact": "환율 안정화로 외국인 수급 순매수 전환. 반도체, 바이오, 2차전지 등 낙폭 과대 성장주 기술적 반등 유입",
-          "usEtfImpact": "나스닥100(QQQ) 및 반도체(SOXX) 숏커버링 랠리. 환율 하락에 따른 환헤지(H) ETF의 상대적 방어력 부각",
+          "headline": "소비 둔화 가시화에 따른 금리 인하 기대감 강화",
+          "ratesFx": "미 국채 금리 하락 및 달러화 약세 전환, 원/달러 환율 안정화",
+          "kospiImpact": "신흥국 증시 수급 유입 및 금리 민감주(바이오, 이차전지) 단기 반등",
+          "usEtfImpact": "미국 테크 ETF(QQQ) 및 미국 장기국채 ETF 반등, 환노출 ETF는 환율 하락으로 상승폭 일부 상쇄",
           "scores": [
             1.2,
             1.5,
@@ -54,93 +54,99 @@
     },
     {
       "id": "event-2",
-      "dayLabel": "11/20 (목) 06:00 KST",
-      "shortName": "11/20 엔비디아 실적",
+      "dayLabel": "11/27 (목) 04:00 KST",
+      "shortName": "11/27 FOMC 의사록",
       "country": "US",
       "countryBadge": "🇺🇸 미국",
-      "title": "엔비디아(NVDA) 3분기 실적 발표 및 한국 수출 지표",
+      "title": "연준 11월 FOMC 정례회의 의사록 공개",
       "importance": 3,
-      "previous": "EPS $0.68",
-      "consensus": "매출 $32.9B / EPS $0.74",
-      "ibForecast": "Morgan Stanley는 블랙웰 칩 서버 과열 이슈 완화 및 2025년 CSP들의 Capex 상향 지속 여부가 핵심 드라이버라 분석.",
-      "sourceTitle": "Morgan Stanley Ideas",
-      "sourceUrl": "https://www.morganstanley.com/ideas",
-      "secondSourceTitle": "한국무역협회",
-      "secondSourceUrl": "https://www.kita.net",
-      "watchPoint": "차분기 매출 가이던스 상단 제시 여부 및 메모리 반도체 수출 단가 흐름",
+      "previous": "N/A",
+      "consensus": "중립",
+      "ibForecast": "위원들 간 중립금리 수준과 양적긴축(QT) 속도 조절에 관한 이견 표출 가능성이 제기됩니다.",
+      "sourceTitle": "연방준비제도(FRB)",
+      "sourceUrl": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+      "secondSourceTitle": "로이터 이코노믹스",
+      "secondSourceUrl": "https://www.reuters.com/markets",
+      "watchPoint": "향후 기준금리 인하 일시정지(Skip) 논의 여부 및 인플레이션 상방 리스크 진단",
       "scenarios": {
         "beat": {
-          "headline": "엔비디아 어닝 서프라이즈 + 한국 반도체 수출 호조",
-          "ratesFx": "위험선호(Risk-on) 재개로 안전자산 선호 약화, 원/달러 환율 1,380원 초반으로 하향 안정화",
-          "kospiImpact": "삼성전자, SK하이닉스 및 소부장 동반 급등. 외국인 대규모 순매수로 KOSPI 2,550선 회복 시도",
-          "usEtfImpact": "반도체 ETF(SOXX, SMH) 및 QQQ 급등. 전력/유틸리티(XLU), 산업재(XLI) ETF 동반 강세",
+          "headline": "금리 인하 신중론 및 매파적 기조 재확인",
+          "ratesFx": "단기 금리 중심 상승, 달러화 강세 지속",
+          "kospiImpact": "글로벌 유동성 위축 우려로 지수 상단 제약",
+          "usEtfImpact": "배당주 및 방어주 ETF 상대적 우위, 고평가 기술주 ETF 조정",
           "scores": [
-            1.8,
-            2.0,
-            -0.5,
-            1.5,
-            2.2
+            -0.8,
+            -1.2,
+            0.7,
+            -0.4,
+            -0.9
           ]
         },
         "miss": {
-          "headline": "엔비디아 가이던스 실망 + 수출 단가 둔화",
-          "ratesFx": "AI 거품론 대두로 주식 위험 프리미엄 확대, 신흥국 통화 약세 심화로 원/달러 1,400원 위협",
-          "kospiImpact": "외국인 반도체 대형주 집중 투매. KOSPI 박스권 하단 이탈 리스크 확대, 내수 배당주로 수급 피신",
-          "usEtfImpact": "테크 메가캡 주도력 훼손. S&P 500 동일가중(RSP), 필수소비재(XLP), 헬스케어(XLV) 상대적 강세",
+          "headline": "노동시장 둔화 위험 강조로 비둘기파적 스탠스 부각",
+          "ratesFx": "국채 전 구간 금리 안정화, 달러화 소폭 약세",
+          "kospiImpact": "국내 반도체 대형주 중심 저가 매수세 유입 기대",
+          "usEtfImpact": "미국 성장주 ETF 및 중소형주(IWM) ETF 랠리 기대",
           "scores": [
-            -2.0,
-            -2.2,
-            0.8,
-            -1.8,
-            -2.5
+            0.9,
+            1.1,
+            0.5,
+            1.0,
+            1.3
           ]
         }
       }
+    }
+  ],
+  "syncStatus": "ok",
+  "marketQuotes": [
+    {
+      "key": "KOSPI",
+      "label": "🇰🇷 KOSPI",
+      "yahooSymbol": "^KS11",
+      "priceText": "4,695.99",
+      "changePct": -3.57,
+      "subText": "전일 4,869.96"
     },
     {
-      "id": "event-3",
-      "dayLabel": "11/21 (금) 23:45 KST",
-      "shortName": "11/21 미 11월 Flash PMI",
-      "country": "US",
-      "countryBadge": "🇺🇸 미국",
-      "title": "미국·유로존 11월 S&P 글로벌 제조업/서비스업 PMI (Flash)",
-      "importance": 3,
-      "previous": "제조업 48.5 / 서비스업 55.0",
-      "consensus": "제조업 48.8 / 서비스업 55.2",
-      "ibForecast": "Citi 및 Barclays는 유로존 제조업 침체와 미국 서비스업의 견조함 간 성장 격차가 달러 강세를 지속시킨다고 진단.",
-      "sourceTitle": "Citi Insights",
-      "sourceUrl": "https://www.citigroup.com/global/insights",
-      "secondSourceTitle": "Barclays Insights",
-      "secondSourceUrl": "https://www.cib.barclays/our-insights.html",
-      "watchPoint": "서비스업 중심 골디락스 유지 여부 및 미-유로존 성장 격차(Growth Gap)",
-      "scenarios": {
-        "beat": {
-          "headline": "미국 서비스업 서프라이즈 + 유로존 위축 심화",
-          "ratesFx": "미국 경제 예외주의 부각으로 달러 강세 폭주(EUR/USD 1.05 하향 돌파), 원/달러 1,405원 터치 가능성",
-          "kospiImpact": "미국 자금 쏠림 속 국내 증시는 환율 부담으로 상승 탄력 둔화 및 외국인 수급 이탈 지속",
-          "usEtfImpact": "미국 주식 자금 집중 지속. 미국 환노출 ETF가 절대적 우위를 유지",
-          "scores": [
-            -0.5,
-            -1.0,
-            1.5,
-            0.8,
-            -0.8
-          ]
-        },
-        "miss": {
-          "headline": "미국 서비스업 50선 근접 둔화 + 글로벌 동반 부진",
-          "ratesFx": "글로벌 경기 침체 공포 확산으로 미 10년물 금리 급락(4.25% 하회), 엔화 및 금 등 안전자산 선호",
-          "kospiImpact": "글로벌 증시 멀티플 하락 압력 연동. 수출주 전반의 실적 둔화 우려 반영",
-          "usEtfImpact": "주식형 ETF 전반 유동성 위축. 미 채권 ETF(TLT) 및 고배당 가치주로의 자금 피신",
-          "scores": [
-            -1.5,
-            -1.8,
-            -1.2,
-            -1.0,
-            -1.5
-          ]
-        }
-      }
+      "key": "USDKRW",
+      "label": "💱 원/달러 환율",
+      "yahooSymbol": "KRW=X",
+      "priceText": "1,344.28원",
+      "changePct": -0.14,
+      "subText": "전일 1,346.13원"
+    },
+    {
+      "key": "NDX",
+      "label": "🇺🇸 나스닥 100",
+      "yahooSymbol": "^NDX",
+      "priceText": "25,028.98",
+      "changePct": -5.61,
+      "subText": "전일 26,517.10"
+    },
+    {
+      "key": "SP500",
+      "label": "🇺🇸 S&P 500",
+      "yahooSymbol": "^GSPC",
+      "priceText": "6,910.39",
+      "changePct": -3.7,
+      "subText": "전일 7,175.83"
+    },
+    {
+      "key": "US10Y",
+      "label": "📈 미 10년물 금리",
+      "yahooSymbol": "^TNX",
+      "priceText": "4.91%",
+      "changePct": -2.77,
+      "subText": "전일 5.05%"
+    },
+    {
+      "key": "DXY",
+      "label": "💵 달러 인덱스",
+      "yahooSymbol": "DX-Y.NYB",
+      "priceText": "103.77",
+      "changePct": -0.03,
+      "subText": "전일 103.81"
     }
   ]
 }
