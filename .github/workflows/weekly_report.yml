@@ -2,8 +2,8 @@ name: Weekly Macro Report & Web Sync
 
 on:
   schedule:
-    # 매주 월요일 오전 08:00 KST (UTC 기준 일요일 23:00)
-    - cron: '0 23 * * 0'
+    # 매주 월요일 오전 08:17 KST (정각 트래픽 혼잡 회피, UTC 일요일 23:17)
+    - cron: '17 23 * * 0'
   workflow_dispatch:
 
 permissions:
@@ -41,6 +41,6 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add latest_report.json
-            git diff --staged --quiet || git commit -m "chore: update weekly macro report JSON [skip ci]"
+            git diff --staged --quiet || git commit -m "chore: update weekly macro report JSON"
             git push
           fi
